@@ -10,11 +10,99 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ru.surfproject.app.weather.SettingActivity">
 
-    <TextView
-        android:text="ActivitySettings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView3"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:id="@+id/settings_radio_group_temperature">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Температура"
+                android:textSize="25dp"
+                android:gravity="center"
+                />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="по Цельсию"
+                android:textSize="15dp"
+                android:checked="true"
+                android:id="@+id/settings_temperature_radio_C"
+                />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="по Фаренгейту"
+                android:textSize="15dp"
+                android:id="@+id/settings_temperature_radio_F"
+                />
+        </RadioGroup>
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:id="@+id/settings_radio_group_speed">
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Скорость ветра"
+                android:textSize="25dp"
+                android:gravity="center"
+                />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="м/с"
+                android:textSize="15dp"
+                android:checked="true"
+                android:id="@+id/settings_speed_wind_radio_ms"
+                />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="км/ч"
+                android:textSize="15dp"
+                android:id="@+id/settings_speed_wind_radio_km_hour"
+                />
+        </RadioGroup>
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:id="@+id/settings_radio_group_pressure">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Давление"
+                android:textSize="25dp"
+                android:gravity="center"
+                />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="мм рт. ст"
+                android:textSize="15dp"
+                android:checked="true"
+                android:id="@+id/settings_pressure_mm"
+                />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="гПа"
+                android:textSize="15dp"
+                android:id="@+id/settings_pressure_gPa"
+                />
+        </RadioGroup>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="О программе"/>
+    </LinearLayout>
 </RelativeLayout>

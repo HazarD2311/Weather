@@ -31,12 +31,10 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".FavoritesActivity"
-            android:label="@string/title_activity_favorites" />
-        <activity
             android:name=".SettingActivity"
             android:label="@string/title_activity_settings" />
-        <activity android:name=".SearchActivity"></activity>
+        <activity android:name=".SearchActivity" />
+        <activity android:name=".AboutActivity"></activity>
     </application>
 
 </manifest>

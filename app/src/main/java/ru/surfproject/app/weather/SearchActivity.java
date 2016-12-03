@@ -22,9 +22,9 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         // Инициализируем actionBar, для того, чтобы добавить в него кнопку назад
-        ActionBar actionBar = getDelegate().getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowHomeEnabled(true);
+        ActionBar ab =getSupportActionBar();
+        ab.setDisplayHomeAsUpEnabled(true);
+
         fragmentMap = new FragmentMap();
         fragmentSearch = new FragmentSearch();
         viewPager = (ViewPager) findViewById(R.id.viewpager);

@@ -5,16 +5,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
 
-public class FavoritesActivity extends AppCompatActivity {
+public class AboutActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_favorites);
+        setContentView(R.layout.activity_about);
         // Инициализируем actionBar, для того, чтобы добавить в него кнопку назад
-        ActionBar actionBar = getDelegate().getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowHomeEnabled(true);
+        ActionBar ab =getSupportActionBar();
+        ab.setDisplayHomeAsUpEnabled(true);
     }
     // Метод слушает нажатые кнопки в actionBar
     @Override

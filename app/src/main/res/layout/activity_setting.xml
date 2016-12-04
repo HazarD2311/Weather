@@ -1,108 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_setting"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="ru.surfproject.app.weather.SettingActivity">
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-        <RadioGroup
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
-            android:id="@+id/settings_radio_group_temperature">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Температура"
-                android:textSize="25dp"
-                android:gravity="center"
-                />
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="по Цельсию"
-                android:textSize="15dp"
-                android:checked="true"
-                android:id="@+id/settings_temperature_radio_C"
-                />
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="по Фаренгейту"
-                android:textSize="15dp"
-                android:id="@+id/settings_temperature_radio_F"
-                />
-        </RadioGroup>
+        android:layout_height="wrap_content"
+        android:background="@color/colorLayoutWeather"
+        android:padding="16dp"
+        android:shadowColor="@color/text_shadow"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:text="@string/settingsTitleMain"
+        android:textColor="@android:color/white"
+        android:textSize="20sp" />
 
-        <RadioGroup
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
-            android:id="@+id/settings_radio_group_speed">
+    <RadioGroup
+        android:id="@+id/settings_radio_group_temperature"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLayoutWeatherChild"
+        android:paddingLeft="16dp">
+
         <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Скорость ветра"
-                android:textSize="25dp"
-                android:gravity="center"
-                />
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="м/с"
-                android:textSize="15dp"
-                android:checked="true"
-                android:id="@+id/settings_speed_wind_radio_ms"
-                />
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="км/ч"
-                android:textSize="15dp"
-                android:id="@+id/settings_speed_wind_radio_km_hour"
-                />
-        </RadioGroup>
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainTemperature"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
 
-        <RadioGroup
+        <RadioButton
+            android:id="@+id/settings_temperature_radio_с"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
-            android:id="@+id/settings_radio_group_pressure">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Давление"
-                android:textSize="25dp"
-                android:gravity="center"
-                />
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="мм рт. ст"
-                android:textSize="15dp"
-                android:checked="true"
-                android:id="@+id/settings_pressure_mm"
-                />
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="гПа"
-                android:textSize="15dp"
-                android:id="@+id/settings_pressure_gPa"
-                />
-        </RadioGroup>
-        <Button
+            android:checked="true"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainTemperatureType1"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+
+        <RadioButton
+            android:id="@+id/settings_temperature_radio_f"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="О программе"/>
-    </LinearLayout>
-</RelativeLayout>
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainTemperatureType2"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+    </RadioGroup>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorViewLine" />
+
+    <RadioGroup
+        android:id="@+id/settings_radio_group_speed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLayoutWeatherChild"
+        android:paddingLeft="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainSpeedWind"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/settings_speed_wind_radio_ms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainSpeedWindType1"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+
+        <RadioButton
+            android:id="@+id/settings_speed_wind_radio_km_hour"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainSpeedWindType2"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+    </RadioGroup>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorViewLine" />
+
+    <RadioGroup
+        android:id="@+id/settings_radio_group_pressure"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLayoutWeatherChild"
+        android:paddingLeft="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainPressure"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/settings_pressure_mm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainPressureType1"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+
+        <RadioButton
+            android:id="@+id/settings_pressure_gpa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:text="@string/settingsMainPressureType2"
+            android:textColor="@android:color/white"
+            android:textSize="15sp" />
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorLayoutWeather"
+        android:padding="16dp"
+        android:shadowColor="@color/text_shadow"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:text="Кэш"
+        android:textColor="@android:color/white"
+        android:textSize="20sp" />
+</LinearLayout>

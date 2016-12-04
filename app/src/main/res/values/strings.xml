@@ -5,8 +5,20 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_settings">Настройки</string>
     <string name="action_about">О программе</string>
-
     <string name="title_activity_favorites">Места</string>
     <string name="title_activity_settings">Настройки</string>
     <string name="title_activity_maps">Map</string>
+
+     <!-- Стринги для активити настройки -->
+    <string name="settingsTitleMain">Основное</string>
+    <string name="settingsMainTemperature">Температура</string>
+    <string name="settingsMainTemperatureType1">По Цельсию</string>
+    <string name="settingsMainTemperatureType2">По Фаренгейту</string>
+    <string name="settingsMainSpeedWind">Скорость ветра</string>
+    <string name="settingsMainSpeedWindType1">м/с</string>
+    <string name="settingsMainSpeedWindType2">км/ч</string>
+    <string name="settingsMainPressure">Давление</string>
+    <string name="settingsMainPressureType1">мм рт. ст</string>
+    <string name="settingsMainPressureType2">гПа</string>
+
 </resources>

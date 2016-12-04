@@ -38,8 +38,8 @@
                     android:shadowDx="1"
                     android:shadowDy="1"
                     android:shadowRadius="2"
-                    android:text="Сегодня"
                     android:textColor="@android:color/white"
+                    android:text="Сегодня"
                     android:textSize="16sp" />
                 <TextView
                     android:id="@+id/tv_type_weather"

@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         if (idFragment!=0){
-            navigationView.setCheckedItem(idFragment); //По умолчанию делаем "Моя погода" выделенным
+            navigationView.setCheckedItem(idFragment); //Делаем выделеным необходимый элемент меню
         }
 
     }

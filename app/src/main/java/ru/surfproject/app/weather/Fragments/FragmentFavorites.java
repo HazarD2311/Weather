@@ -19,6 +19,7 @@ public class FragmentFavorites extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_favorites, container, false);
+        getActivity().setTitle("Места");
         return view;
     }
 }

@@ -3,6 +3,7 @@ package ru.surfproject.app.weather;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 public class AboutActivity extends AppCompatActivity {
@@ -11,10 +12,16 @@ public class AboutActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
-        // Инициализируем actionBar, для того, чтобы добавить в него кнопку назад
-        ActionBar ab =getSupportActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
+        // Инициализируем ToolBar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        // Добавление кнопки назад в toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
     }
+
     // Метод слушает нажатые кнопки в actionBar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

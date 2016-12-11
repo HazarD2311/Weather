@@ -1,4 +1,4 @@
-package ru.surfproject.app.weather.Adapters;
+package ru.surfproject.app.weather.adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

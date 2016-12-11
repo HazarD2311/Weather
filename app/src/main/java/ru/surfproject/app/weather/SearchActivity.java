@@ -2,36 +2,44 @@ package ru.surfproject.app.weather;
 
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import ru.surfproject.app.weather.Adapters.FragmentsAdapter;
-import ru.surfproject.app.weather.Fragments.FragmentMap;
-import ru.surfproject.app.weather.Fragments.FragmentSearch;
+import ru.surfproject.app.weather.adapters.FragmentsAdapter;
+import ru.surfproject.app.weather.fragments.FragmentSearchMap;
+import ru.surfproject.app.weather.fragments.FragmentSearch;
 
 
 public class SearchActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    FragmentMap fragmentMap;
+    FragmentSearchMap fragmentMap;
     FragmentSearch fragmentSearch;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        // Инициализируем actionBar, для того, чтобы добавить в него кнопку назад
-        ActionBar ab =getSupportActionBar();
-        ab.setDisplayHomeAsUpEnabled(true);
+        // Инициализируем ToolBar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        // Добавление кнопки назад в toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
 
-        fragmentMap = new FragmentMap();
+
+        fragmentMap = new FragmentSearchMap();
         fragmentSearch = new FragmentSearch();
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
     }
+
     private void setupViewPager(ViewPager viewPager) {
         FragmentsAdapter adapter = new FragmentsAdapter(getSupportFragmentManager());
         adapter.addFragment(fragmentSearch, "Поиск");

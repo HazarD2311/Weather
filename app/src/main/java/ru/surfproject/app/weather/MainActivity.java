@@ -15,13 +15,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import ru.surfproject.app.weather.Fragments.FragmentFavorites;
-import ru.surfproject.app.weather.Fragments.FragmentMain;
+import ru.surfproject.app.weather.fragments.FragmentFavorites;
+import ru.surfproject.app.weather.fragments.FragmentMain;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     NavigationView navigationView;
-    int idFragment=0;
+    int idFragment = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,12 +59,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_settings:
-                openActivity(this,SettingActivity.class);
+                openActivity(this, SettingsActivity.class);
                 break;
             case R.id.action_about:
-                openActivity(this,AboutActivity.class);
+                openActivity(this, AboutActivity.class);
                 break;
         }
 
@@ -74,21 +75,21 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_myweather:
-                openFragment(new FragmentMain(),R.id.action_myweather);
+                openFragment(new FragmentMain(), R.id.action_myweather);
                 break;
             case R.id.action_favorites:
-                openFragment(new FragmentFavorites(),R.id.action_favorites);
+                openFragment(new FragmentFavorites(), R.id.action_favorites);
                 break;
             case R.id.action_search:
-                openActivity(this,SearchActivity.class);
+                openActivity(this, SearchActivity.class);
                 break;
             case R.id.action_settings:
-                openActivity(this,SettingActivity.class);
+                openActivity(this, SettingsActivity.class);
                 break;
             case R.id.action_about:
-                openActivity(this,AboutActivity.class);
+                openActivity(this, AboutActivity.class);
                 break;
             case R.id.action_exit:
                 finish();
@@ -99,13 +100,15 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-    private static void openActivity(Context context, Class<?> cls){
-            Intent intent = new Intent(context, cls);
-            context.startActivity(intent);
+
+    private static void openActivity(Context context, Class<?> cls) {
+        Intent intent = new Intent(context, cls);
+        context.startActivity(intent);
 
     }
-    private void openFragment(Fragment fragment, int idFragment){
-        this.idFragment=idFragment; // Запоминаем id нажатой менюшки, для того чтобы было выделение элемента меню, только при переходе на фрагменты
+
+    private void openFragment(Fragment fragment, int idFragment) {
+        this.idFragment = idFragment; // Запоминаем id нажатой менюшки, для того чтобы было выделение элемента меню, только при переходе на фрагменты
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction ft = fragmentManager.beginTransaction();
         ft.replace(R.id.fragments_container, fragment);
@@ -116,7 +119,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (idFragment!=0){
+        if (idFragment != 0) {
             navigationView.setCheckedItem(idFragment); //Делаем выделеным необходимый элемент меню
         }
 

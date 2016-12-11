@@ -19,10 +19,10 @@ import ru.surfproject.app.weather.R;
 
 public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHolder> {
 
-    private List<Weather> itemsRecyclerAdapterList = new ArrayList<>();
+    private List<Weather> weatherList = new ArrayList<>();
 
     public WeatherAdapter(List<Weather> itemsRecyclerAdapterList) {
-        this.itemsRecyclerAdapterList = itemsRecyclerAdapterList;
+        this.weatherList = itemsRecyclerAdapterList;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(WeatherAdapter.ViewHolder holder, int position) {
-        Weather mainItemsRecyclerAdapter = itemsRecyclerAdapterList.get(position);
+        Weather mainItemsRecyclerAdapter = weatherList.get(position);
         holder.imageTypeweather.setImageResource(mainItemsRecyclerAdapter.getImage());
         holder.textViewWeekday.setText(mainItemsRecyclerAdapter.getDay());
         holder.textViewTypeWeather.setText(mainItemsRecyclerAdapter.getTypeWeather());
@@ -43,7 +43,7 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return itemsRecyclerAdapterList.size();
+        return weatherList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

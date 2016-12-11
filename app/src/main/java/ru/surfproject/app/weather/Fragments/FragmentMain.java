@@ -1,4 +1,4 @@
-package ru.surfproject.app.weather.Fragments;
+package ru.surfproject.app.weather.fragments;
 
 
 import android.os.Bundle;
@@ -14,8 +14,8 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.surfproject.app.weather.Adapters.MainRecyclerAdapter;
-import ru.surfproject.app.weather.Models.MainItemsRecyclerAdapter;
+import ru.surfproject.app.weather.adapters.WeatherAdapter;
+import ru.surfproject.app.weather.models.Weather;
 import ru.surfproject.app.weather.R;
 
 /**
@@ -23,30 +23,30 @@ import ru.surfproject.app.weather.R;
  */
 
 public class FragmentMain extends Fragment {
-    RecyclerView recyclerViewMain;
+    RecyclerView recyclerViewWeather;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         getActivity().setTitle("Воронеж"); // Устанавливаем город
-        recyclerViewFilling(view); // Заполнение recyclerViewMain
+        setupRecycler(view); // Заполнение recyclerViewWeather
         return view;
     }
 
-    private void recyclerViewFilling(View view) {
-        recyclerViewMain = (RecyclerView)view.findViewById(R.id.recycler_view_main);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerViewMain.setLayoutManager(layoutManager); // Устанавливаем лайаут для ресайкалВью
-        recyclerViewMain.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
-        MainRecyclerAdapter mainRecyclerAdapter = new MainRecyclerAdapter(elementsForRecyclerView()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
-        recyclerViewMain.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewMain
+    private void setupRecycler(View view) {
+        recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
+        recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
+        recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
+        WeatherAdapter mainRecyclerAdapter = new WeatherAdapter(valuesForRecycler()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
+        recyclerViewWeather.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewWeather
     }
 
-    // Тестовый метод для заполнения recyclerViewMain
-    private List<MainItemsRecyclerAdapter> elementsForRecyclerView(){
-        List<MainItemsRecyclerAdapter> test = new ArrayList<>();
-        for (int i=0;i<15;i++){
-            test.add(new MainItemsRecyclerAdapter(R.drawable.icon,"Сегодня"+i,"Снег"+i,String.valueOf(-5+i)));
+    // Тестовый метод для заполнения recyclerViewWeather
+    private List<Weather> valuesForRecycler() {
+        List<Weather> test = new ArrayList<>();
+        for (int i = 0; i < 15; i++) {
+            test.add(new Weather(R.drawable.icon, "Сегодня" + i, "Снег" + i, String.valueOf(-5 + i)));
         }
         return test;
     }

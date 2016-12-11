@@ -16,29 +16,29 @@ import ru.surfproject.app.weather.R;
  * Created by ПК on 12/5/2016.
  */
 
-public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.ViewHolder> {
-    private List<Favourite> itemsFavouriteRecycleAdapterList = new ArrayList<>();
+public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.ViewHolder> {
+    private List<Favourite> favouritesList = new ArrayList<>();
 
-    public FavouriteAdapter(List<Favourite> itemsFavouriteRecycleAdapterList) {
-        this.itemsFavouriteRecycleAdapterList = itemsFavouriteRecycleAdapterList;
+    public FavouritesAdapter(List<Favourite> itemsFavouriteRecycleAdapterList) {
+        this.favouritesList = itemsFavouriteRecycleAdapterList;
     }
 
     @Override
-    public FavouriteAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public FavouritesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.items_recycler_favourite, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(FavouriteAdapter.ViewHolder holder, int position) {
-        Favourite favouriteItemsRecyclerAdapter = itemsFavouriteRecycleAdapterList.get(position);
+    public void onBindViewHolder(FavouritesAdapter.ViewHolder holder, int position) {
+        Favourite favouriteItemsRecyclerAdapter = favouritesList.get(position);
         holder.textViewCity.setText(favouriteItemsRecyclerAdapter.getCity());
         holder.textViewAverageTemperature.setText(favouriteItemsRecyclerAdapter.getAverageTemperature());
     }
 
     @Override
     public int getItemCount() {
-        return itemsFavouriteRecycleAdapterList.size();
+        return favouritesList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

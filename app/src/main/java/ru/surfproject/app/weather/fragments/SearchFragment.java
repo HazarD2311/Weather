@@ -13,7 +13,8 @@ import ru.surfproject.app.weather.R;
  * Created by pkorl on 27.11.2016.
  */
 
-public class FragmentSearch extends Fragment {
+public class SearchFragment extends Fragment {
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

@@ -18,32 +18,26 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorLayoutWeather"
         android:padding="16dp"
-        android:shadowColor="@color/text_shadow"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
         android:text="@string/settingsTitleMain"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="20sp" />
-
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorViewLine" />
     <RadioGroup
         android:id="@+id/settings_radio_group_temperature"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorLayoutWeatherChild"
-        android:paddingLeft="16dp">
+        android:paddingLeft="16dp"
+        android:layout_marginTop="5dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainTemperature"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="16sp" />
 
         <RadioButton
@@ -51,48 +45,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainTemperatureType1"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="15sp" />
 
         <RadioButton
             android:id="@+id/settings_temperature_radio_f"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainTemperatureType2"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="15sp" />
     </RadioGroup>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/colorViewLine" />
-
     <RadioGroup
         android:id="@+id/settings_radio_group_speed"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorLayoutWeatherChild"
         android:paddingLeft="16dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainSpeedWind"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="16sp" />
 
         <RadioButton
@@ -100,48 +75,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainSpeedWindType1"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="15sp" />
 
         <RadioButton
             android:id="@+id/settings_speed_wind_radio_km_hour"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainSpeedWindType2"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="15sp" />
     </RadioGroup>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/colorViewLine" />
-
     <RadioGroup
         android:id="@+id/settings_radio_group_pressure"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorLayoutWeatherChild"
-        android:paddingLeft="16dp">
+        android:paddingLeft="16dp"
+        android:layout_marginBottom="5dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainPressure"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="16sp" />
 
         <RadioButton
@@ -149,38 +106,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainPressureType1"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="15sp" />
 
         <RadioButton
             android:id="@+id/settings_pressure_gpa"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:shadowColor="@color/text_shadow"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
             android:text="@string/settingsMainPressureType2"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="15sp" />
     </RadioGroup>
-
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorViewLine" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorLayoutWeather"
         android:padding="16dp"
-        android:shadowColor="@color/text_shadow"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
         android:text="Кэш"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="20sp" />
 </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

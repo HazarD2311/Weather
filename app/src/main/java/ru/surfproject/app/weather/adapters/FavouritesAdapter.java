@@ -33,7 +33,6 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
     public void onBindViewHolder(FavouritesAdapter.ViewHolder holder, int position) {
         Favourite favouriteItemsRecyclerAdapter = favouritesList.get(position);
         holder.textViewCity.setText(favouriteItemsRecyclerAdapter.getCity());
-        holder.textViewAverageTemperature.setText(favouriteItemsRecyclerAdapter.getAverageTemperature());
     }
 
     @Override
@@ -43,12 +42,10 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView textViewCity;
-        public TextView textViewAverageTemperature;
 
         public ViewHolder(View itemView) {
             super(itemView);
             textViewCity = (TextView) itemView.findViewById(R.id.favourite_city);
-            textViewAverageTemperature = (TextView) itemView.findViewById(R.id.favourite_temperature);
         }
 
     }

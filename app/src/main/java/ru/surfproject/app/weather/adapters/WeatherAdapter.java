@@ -37,7 +37,8 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
         holder.imageTypeweather.setImageResource(mainItemsRecyclerAdapter.getImage());
         holder.textViewWeekday.setText(mainItemsRecyclerAdapter.getDay());
         holder.textViewTypeWeather.setText(mainItemsRecyclerAdapter.getTypeWeather());
-        holder.textViewTemperature.setText(mainItemsRecyclerAdapter.getTemperature());
+        holder.textViewTemperature1.setText(mainItemsRecyclerAdapter.getTemperature1());
+        holder.textViewTemperature2.setText(mainItemsRecyclerAdapter.getTemperature2());
 
     }
 
@@ -50,14 +51,16 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
         ImageView imageTypeweather;
         TextView textViewWeekday;
         TextView textViewTypeWeather;
-        TextView textViewTemperature;
+        TextView textViewTemperature1;
+        TextView textViewTemperature2;
 
         public ViewHolder(View itemView) {
             super(itemView);
             imageTypeweather = (ImageView) itemView.findViewById(R.id.img_type_weather);
             textViewWeekday = (TextView) itemView.findViewById(R.id.tv_weekday);
             textViewTypeWeather = (TextView) itemView.findViewById(R.id.tv_type_weather);
-            textViewTemperature = (TextView) itemView.findViewById(R.id.tv_temperature);
+            textViewTemperature1 = (TextView) itemView.findViewById(R.id.tv_temperature1);
+            textViewTemperature2 = (TextView) itemView.findViewById(R.id.tv_temperature2);
         }
     }
 }

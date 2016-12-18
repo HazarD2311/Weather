@@ -8,13 +8,15 @@ public class Weather {
     final int image;
     final String day;
     final String typeWeather;
-    final String temperature;
+    final String temperature1;
+    final String temperature2;
 
-    public Weather(int image, String day, String typeWeather, String temperature) {
+    public Weather(int image, String day, String typeWeather, String temperature1, String temperature2) {
         this.image = image;
         this.day = day;
         this.typeWeather = typeWeather;
-        this.temperature = temperature;
+        this.temperature1 = temperature1;
+        this.temperature2 = temperature2;
     }
 
     public int getImage() {
@@ -29,7 +31,11 @@ public class Weather {
         return typeWeather;
     }
 
-    public String getTemperature() {
-        return temperature;
+    public String getTemperature1() {
+        return temperature1;
+    }
+
+    public String getTemperature2() {
+        return temperature2;
     }
 }

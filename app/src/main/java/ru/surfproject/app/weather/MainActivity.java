@@ -22,6 +22,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -29,23 +31,22 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-import ru.surfproject.app.weather.fragments.FragmentFavorites;
-import ru.surfproject.app.weather.fragments.FragmentMain;
+import ru.surfproject.app.weather.fragments.FavoritesFragment;
+import ru.surfproject.app.weather.fragments.WeatherFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+
     private NavigationView navigationView;
     private int idFragment = 0;
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
-
+    private Bundle bundleWeather;
+    private ProgressBar progressBar;
     private static void openActivity(Context context, Class<?> cls) {
         Intent intent = new Intent(context, cls);
         context.startActivity(intent);
@@ -66,7 +67,6 @@ public class MainActivity extends AppCompatActivity
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        openFragment(new FragmentMain(), R.id.action_myweather);// При старте приложения открываем ФрагментМайн
         loadingMapView(); // Метод прогружает MapView, чтобы не было задержки, когда пользователь перейдет на фрагмент с картой
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -77,7 +77,8 @@ public class MainActivity extends AppCompatActivity
         } else {
             buildGoogleApiClient();
         }
-
+        bundleWeather = new Bundle();
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
     }
     @Override
     public void onBackPressed() {
@@ -113,10 +114,10 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_myweather:
-                openFragment(new FragmentMain(), R.id.action_myweather);
+                openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);
                 break;
             case R.id.action_favorites:
-                openFragment(new FragmentFavorites(), R.id.action_favorites);
+                openFragment(new FavoritesFragment(), R.id.action_favorites, null);
                 break;
             case R.id.action_search:
                 openActivity(this, SearchActivity.class);
@@ -137,7 +138,10 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void openFragment(Fragment fragment, int idFragment) {
+    private void openFragment(Fragment fragment, int idFragment, Bundle bundle) {
+        if (bundle!=null){
+            fragment.setArguments(bundle);
+        }
         this.idFragment = idFragment; // Запоминаем id нажатой менюшки, для того чтобы было выделение элемента меню, только при переходе на фрагменты
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction ft = fragmentManager.beginTransaction();
@@ -172,7 +176,7 @@ public class MainActivity extends AppCompatActivity
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case Permissions.MY_PERMISSIONS_REQUEST_LOCATION: {
+            case Const.MY_PERMISSIONS_REQUEST_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Разрешение было одобрено.
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -201,11 +205,11 @@ public class MainActivity extends AppCompatActivity
                     android.Manifest.permission.ACCESS_FINE_LOCATION)) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        Permissions.MY_PERMISSIONS_REQUEST_LOCATION);
+                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        Permissions.MY_PERMISSIONS_REQUEST_LOCATION);
+                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
             }
             return false;
         } else {
@@ -244,7 +248,10 @@ public class MainActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
         mLastLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        Toast.makeText(this, latLng.latitude+", "+latLng.longitude, Toast.LENGTH_SHORT).show();
+        bundleWeather.putString("latitude",String.valueOf(latLng.latitude));
+        bundleWeather.putString("longitude",String.valueOf(latLng.longitude));
+        progressBar.setVisibility(View.GONE);
+        openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);// Открываем WeatherФрагмент
         //Останавливаем обновление LocationServices
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);

@@ -4,8 +4,5 @@
     <color name="colorPrimaryDark">#1976d2</color>
     <color name="colorAccent">#1976d2</color>
     <color name="tabTextColor">#4d4d4d</color>
-    <color name="text_shadow">#7F000000</color>
-    <color name="colorLayoutWeather">#8c2196f3</color>
-    <color name="colorLayoutWeatherChild">#6a409ae2</color>
-    <color name="colorViewLine">#ffffff</color>
+    <color name="colorViewLine">#dadada</color>
 </resources>

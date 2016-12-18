@@ -22,7 +22,8 @@ import ru.surfproject.app.weather.R;
  * Created by pkorl on 03.12.2016.
  */
 
-public class FragmentFavorites extends Fragment {
+public class FavoritesFragment extends Fragment {
+
     private RecyclerView recyclerViewFavourites;
 
     @Nullable
@@ -45,9 +46,9 @@ public class FragmentFavorites extends Fragment {
     //для теста
     private List<Favourite> valuesForRecycle() {
         List<Favourite> testList = new ArrayList<>();
-        testList.add(new Favourite("Воронеж", "-10"));
-        testList.add(new Favourite("Нью-йорк", "+20"));
-        testList.add(new Favourite("Лондон", "+7"));
+        testList.add(new Favourite("Воронеж"));
+        testList.add(new Favourite("Нью-йорк"));
+        testList.add(new Favourite("Лондон"));
         return testList;
     }
 }

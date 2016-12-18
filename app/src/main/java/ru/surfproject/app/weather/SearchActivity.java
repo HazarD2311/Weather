@@ -8,15 +8,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import ru.surfproject.app.weather.adapters.FragmentsAdapter;
-import ru.surfproject.app.weather.fragments.FragmentSearchMap;
-import ru.surfproject.app.weather.fragments.FragmentSearch;
+import ru.surfproject.app.weather.fragments.SearchMapFragment;
+import ru.surfproject.app.weather.fragments.SearchFragment;
 
 
 public class SearchActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    FragmentSearchMap fragmentMap;
-    FragmentSearch fragmentSearch;
+    SearchMapFragment fragmentMap;
+    SearchFragment fragmentSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +32,8 @@ public class SearchActivity extends AppCompatActivity {
         }
 
 
-        fragmentMap = new FragmentSearchMap();
-        fragmentSearch = new FragmentSearch();
+        fragmentMap = new SearchMapFragment();
+        fragmentSearch = new SearchFragment();
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabs);

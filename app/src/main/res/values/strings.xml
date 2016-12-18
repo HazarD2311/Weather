@@ -21,4 +21,8 @@
     <string name="settingsMainPressureType1">мм рт. ст</string>
     <string name="settingsMainPressureType2">гПа</string>
 
+    <!-- Знаки для погоды! -->
+    <string name="signDegree">°</string>
+    <string name="signPlus">+</string>
+
 </resources>

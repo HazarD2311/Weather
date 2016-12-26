@@ -1,10 +1,13 @@
 package ru.surfproject.app.weather;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,14 +26,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -47,6 +59,10 @@ public class MainActivity extends AppCompatActivity
     private LocationRequest mLocationRequest;
     private Bundle bundleWeather;
     private ProgressBar progressBar;
+    private LinearLayout layoutPermissionEnable;
+    private Button btnPermissionEnable;
+    private LocationSettingsRequest.Builder builder;
+
     private static void openActivity(Context context, Class<?> cls) {
         Intent intent = new Intent(context, cls);
         context.startActivity(intent);
@@ -58,28 +74,27 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        layoutPermissionEnable = (LinearLayout) findViewById(R.id.layout_permission_enable);
+        btnPermissionEnable = (Button) findViewById(R.id.btn_permission_enable);
+        btnPermissionEnable.setOnClickListener(clickBtnPermissionEnable);
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        if (bundleWeather==null){
+            bundleWeather = new Bundle();
+        }
+
 
         loadingMapView(); // Метод прогружает MapView, чтобы не было задержки, когда пользователь перейдет на фрагмент с картой
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkLocationPermissionActivity(); // Просим доступ к местоположению устройства.
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
-                buildGoogleApiClient();
-            }
-        } else {
-            buildGoogleApiClient();
-        }
-        bundleWeather = new Bundle();
-        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        getPermissionLocation(); // Проверяем разрешение на геолокацию
     }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -114,7 +129,12 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_myweather:
-                openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);
+
+                if (bundleWeather.getString("latitude")==null || bundleWeather.getString("longitude")==null) {
+                    getPermissionLocation();
+                } else {
+                    openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);
+                }
                 break;
             case R.id.action_favorites:
                 openFragment(new FavoritesFragment(), R.id.action_favorites, null);
@@ -139,7 +159,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void openFragment(Fragment fragment, int idFragment, Bundle bundle) {
-        if (bundle!=null){
+        if (bundle != null) {
             fragment.setArguments(bundle);
         }
         this.idFragment = idFragment; // Запоминаем id нажатой менюшки, для того чтобы было выделение элемента меню, только при переходе на фрагменты
@@ -181,12 +201,15 @@ public class MainActivity extends AppCompatActivity
                     // Разрешение было одобрено.
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         if (mGoogleApiClient == null) {
-                            buildGoogleApiClient();
+                            setupBuildGoogleApiClient();
+
                         }
                     }
 
                 } else {
                     // Если пользователь отказал в доступе
+                    progressBar.setVisibility(View.GONE);
+                    layoutPermissionEnable.setVisibility(View.VISIBLE);
                     Toast.makeText(this, "Разрешения не предоставлены!", Toast.LENGTH_LONG).show();
                 }
                 return;
@@ -195,7 +218,20 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public boolean checkLocationPermissionActivity(){
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1000) {
+            if(resultCode == Activity.RESULT_OK){
+//                openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);// Открываем WeatherФрагмент
+            } if (resultCode == Activity.RESULT_CANCELED) {
+                progressBar.setVisibility(View.GONE);
+                layoutPermissionEnable.setVisibility(View.VISIBLE);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public boolean checkLocationPermissionActivity() {
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -216,6 +252,7 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
     }
+
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -224,12 +261,53 @@ public class MainActivity extends AppCompatActivity
                 .build();
         mGoogleApiClient.connect();
     }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        // **************************
+        builder.setAlwaysShow(true); // this is the key ingredient
+        // **************************
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi
+                .checkLocationSettings(mGoogleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates state = result
+                        .getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can
+                        // initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be
+                        // fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling
+                            // startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(MainActivity.this, 1000);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have
+                        // no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
@@ -242,19 +320,55 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
     }
+
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        bundleWeather.putString("latitude",String.valueOf(latLng.latitude));
-        bundleWeather.putString("longitude",String.valueOf(latLng.longitude));
+        bundleWeather.putString("latitude", String.valueOf(latLng.latitude));
+        bundleWeather.putString("longitude", String.valueOf(latLng.longitude));
         progressBar.setVisibility(View.GONE);
-        openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);// Открываем WeatherФрагмент
         //Останавливаем обновление LocationServices
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
+    }
+
+    private void getPermissionLocation() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkLocationPermissionActivity(); // Просим доступ к местоположению устройства.
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
+                setupBuildGoogleApiClient();
+            }
+        } else {
+            setupBuildGoogleApiClient();
+
+        }
+    }
+
+    private View.OnClickListener clickBtnPermissionEnable = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            layoutPermissionEnable.setVisibility(View.GONE);
+            getPermissionLocation();
+        }
+    };
+
+    public boolean CheckGpsStatus() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    private void setupBuildGoogleApiClient() {
+       // if (CheckGpsStatus()) {
+            buildGoogleApiClient();
+      //  } else {
+        //    progressBar.setVisibility(View.GONE);
+       //     layoutPermissionEnable.setVisibility(View.VISIBLE);
+
+           // Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+          //  startActivity(gpsOptionsIntent);
+        //}
     }
 }

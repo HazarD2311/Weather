@@ -46,7 +46,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.LatLng;
 
-import ru.surfproject.app.weather.fragments.FavoritesFragment;
+import ru.surfproject.app.weather.fragments.FavouritesFragment;
 import ru.surfproject.app.weather.fragments.WeatherFragment;
 
 public class MainActivity extends AppCompatActivity
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             case R.id.action_favorites:
-                openFragment(new FavoritesFragment(), R.id.action_favorites, null);
+                openFragment(new FavouritesFragment(), R.id.action_favorites, null);
                 break;
             case R.id.action_search:
                 openActivity(this, SearchActivity.class);

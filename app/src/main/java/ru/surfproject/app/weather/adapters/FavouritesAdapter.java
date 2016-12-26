@@ -17,10 +17,17 @@ import ru.surfproject.app.weather.R;
  */
 
 public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.ViewHolder> {
+
+    private OnItemClickListener onItemClickListener;
+    private OnItemLongClickListener onItemLongClickListener;
     private List<Favourite> favouritesList = new ArrayList<>();
 
-    public FavouritesAdapter(List<Favourite> itemsFavouriteRecycleAdapterList) {
+    public FavouritesAdapter(List<Favourite> itemsFavouriteRecycleAdapterList,
+                             OnItemClickListener onItemClickListener,
+                             OnItemLongClickListener onItemLongClickListener) {
         this.favouritesList = itemsFavouriteRecycleAdapterList;
+        this.onItemClickListener = onItemClickListener;
+        this.onItemLongClickListener = onItemLongClickListener;
     }
 
     @Override
@@ -30,8 +37,26 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
     }
 
     @Override
-    public void onBindViewHolder(FavouritesAdapter.ViewHolder holder, int position) {
-        Favourite favouriteItemsRecyclerAdapter = favouritesList.get(position);
+    public void onBindViewHolder(final FavouritesAdapter.ViewHolder holder, final int position) {
+        final Favourite favouriteItemsRecyclerAdapter = favouritesList.get(position);
+        if (onItemClickListener != null) {
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onItemClickListener.onItemClick(view, favouriteItemsRecyclerAdapter);
+                }
+            });
+        }
+        if (onItemLongClickListener != null) {
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    onItemLongClickListener.onItemLongClick(view, favouriteItemsRecyclerAdapter, holder.getAdapterPosition());
+                    return false;
+                }
+            });
+        }
+
         holder.textViewCity.setText(favouriteItemsRecyclerAdapter.getCity());
     }
 
@@ -49,4 +74,18 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
         }
 
     }
+
+    public void renameFavourite(int position, String newName) {
+        favouritesList.get(position).setCity(newName);
+        this.notifyItemChanged(position);
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(View v, Favourite favourite);
+    }
+
+    public interface OnItemLongClickListener {
+        void onItemLongClick(View v, Favourite favourite, int position);
+    }
+
 }

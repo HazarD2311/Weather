@@ -5,43 +5,20 @@
     android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="?attr/actionBarSize"
-    android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="ru.surfproject.app.weather.MainActivity"
-    tools:showIn="@layout/app_bar_main">
-
+    tools:showIn="@layout/app_bar_main"
+    android:orientation="vertical"
+    android:layout_marginTop="?attr/actionBarSize">
     <LinearLayout
-        android:id="@+id/fragments_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"></LinearLayout>
-
+        android:id="@+id/fragments_container"
+        android:orientation="vertical">
+    </LinearLayout>
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center" />
-
-    <LinearLayout
-        android:id="@+id/layout_permission_enable"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Не предоставлены разрешения геолокации" />
-
-        <Button
-            android:id="@+id/btn_permission_enable"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Повторить" />
-    </LinearLayout>
+        android:layout_gravity="center"/>
 </FrameLayout>

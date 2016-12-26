@@ -4,6 +4,8 @@ package ru.surfproject.app.weather.models.weatherresponse;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class WeatherResponse {
 
     @SerializedName("city")
@@ -20,6 +22,6 @@ public class WeatherResponse {
     public Integer cnt;
     @SerializedName("list")
     @Expose
-    public java.util.List<ru.surfproject.app.weather.models.weatherresponse.List> list = null;
+    public List<ListWeather> list = null;
 
 }

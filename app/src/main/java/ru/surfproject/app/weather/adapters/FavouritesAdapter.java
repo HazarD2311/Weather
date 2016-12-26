@@ -52,7 +52,7 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
                 @Override
                 public boolean onLongClick(View view) {
                     onItemLongClickListener.onItemLongClick(view, favouriteItemsRecyclerAdapter, holder.getAdapterPosition());
-                    return false;
+                    return true;
                 }
             });
         }

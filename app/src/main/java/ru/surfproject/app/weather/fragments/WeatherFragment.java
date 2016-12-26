@@ -28,6 +28,7 @@ import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.adapters.WeatherAdapter;
 import ru.surfproject.app.weather.models.Weather;
 import ru.surfproject.app.weather.R;
+import ru.surfproject.app.weather.models.weatherresponse.ListWeather;
 import ru.surfproject.app.weather.models.weatherresponse.WeatherResponse;
 import ru.surfproject.app.weather.network.APIService;
 
@@ -48,25 +49,27 @@ public class WeatherFragment extends Fragment {
     private String cnt;
     private String units;
     private String appid;
+    private Call<WeatherResponse> callWeather;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        viewRoot = inflater.inflate(R.layout.fragment_weather, container, false);
-        progressBarWeather = (ProgressBar) viewRoot.findViewById(R.id.progress_fragment_weather);
-        layoutNetworkError = (LinearLayout) viewRoot.findViewById(R.id.layout_network_error);
-        btnNetworkError = (Button) viewRoot.findViewById(R.id.btn_network_error);
-        btnNetworkError.setOnClickListener(clickBtnNetworkError);
-        initRetrofit(); // Инициализируем Retrofit
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            lat = bundle.getString("latitude");
-            lon = bundle.getString("longitude");
-            cnt = "7";
-            units = "celsius";
-            appid = Const.WEATHER_API;
-            Toast.makeText(getContext(), lat + ", " + lon, Toast.LENGTH_SHORT).show();
-            getWeather(lat, lon, cnt, units, appid);
+        if (viewRoot == null) { // проверяем вьюшки фрагмента на null, чтобы не пересоздавать его, если он уже есть
+            viewRoot = inflater.inflate(R.layout.fragment_weather, container, false);
+            progressBarWeather = (ProgressBar) viewRoot.findViewById(R.id.progress_fragment_weather);
+            layoutNetworkError = (LinearLayout) viewRoot.findViewById(R.id.layout_network_error);
+            btnNetworkError = (Button) viewRoot.findViewById(R.id.btn_network_error);
+            btnNetworkError.setOnClickListener(clickBtnNetworkError);
+            initRetrofit(); // Инициализируем Retrofit
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+                lat = bundle.getString("latitude");
+                lon = bundle.getString("longitude");
+                cnt = "7";
+                units = "celsius";
+                appid = Const.WEATHER_API;
+                getWeather(lat, lon, cnt, units, appid);
+            }
         }
         return viewRoot;
     }
@@ -104,22 +107,27 @@ public class WeatherFragment extends Fragment {
 
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
         //отправляем запрос
-        Call<WeatherResponse> call = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
-        call.enqueue(new Callback<WeatherResponse>() {
+        callWeather = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
+        callWeather.enqueue(new Callback<WeatherResponse>() {
             @Override
             public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
                 progressBarWeather.setVisibility(View.GONE);
                 if (response.isSuccessful()) {
-                    getActivity().setTitle(response.body().city.name); // Устанавливаем имя города в титл город
-                    setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
+                    if (response.body().city.name==null || response.body().list==null) {
+                        progressBarWeather.setVisibility(View.GONE);
+                        layoutNetworkError.setVisibility(View.VISIBLE);
+                        Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        getActivity().setTitle(response.body().city.name); // Устанавливаем имя города в титл город
+                        setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
+                    }
                 }
             }
-
             @Override
             public void onFailure(Call<WeatherResponse> call, Throwable t) {
                 progressBarWeather.setVisibility(View.GONE);
                 layoutNetworkError.setVisibility(View.VISIBLE);
-                Toast.makeText(getContext(), "Не удалось получить прогноз погоды!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -128,7 +136,14 @@ public class WeatherFragment extends Fragment {
         @Override
         public void onClick(View view) {
             layoutNetworkError.setVisibility(View.GONE);
+            progressBarWeather.setVisibility(View.VISIBLE);
             getWeather(lat, lon, cnt, units, appid);
         }
     };
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        callWeather.cancel(); // Отменяем запрос, если фрагмент не в фокусе пользователя
+    }
 }

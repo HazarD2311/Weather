@@ -21,4 +21,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>
+    <LinearLayout
+        android:id="@+id/layout_permission_enable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Ошибка получения прогноза погоды" />
+
+        <Button
+            android:id="@+id/btn_permission_enable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Повторить" />
+    </LinearLayout>
 </FrameLayout>

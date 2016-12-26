@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity
     private LinearLayout layoutPermissionEnable;
     private Button btnPermissionEnable;
     private LocationSettingsRequest.Builder builder;
+    private Status statusLocation;
 
     private static void openActivity(Context context, Class<?> cls) {
         Intent intent = new Intent(context, cls);
@@ -86,11 +87,9 @@ public class MainActivity extends AppCompatActivity
         btnPermissionEnable = (Button) findViewById(R.id.btn_permission_enable);
         btnPermissionEnable.setOnClickListener(clickBtnPermissionEnable);
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        if (bundleWeather==null){
+        if (bundleWeather == null) {
             bundleWeather = new Bundle();
         }
-
-
         loadingMapView(); // Метод прогружает MapView, чтобы не было задержки, когда пользователь перейдет на фрагмент с картой
         getPermissionLocation(); // Проверяем разрешение на геолокацию
     }
@@ -129,15 +128,18 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_myweather:
-
-                if (bundleWeather.getString("latitude")==null || bundleWeather.getString("longitude")==null) {
+                if (bundleWeather.getString("latitude") == null
+                        || bundleWeather.getString("longitude") == null
+                        || statusLocation.getStatusCode() != LocationSettingsStatusCodes.SUCCESS) {
                     getPermissionLocation();
                 } else {
-                    openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);
+                    progressBar.setVisibility(View.GONE);
+                    layoutPermissionEnable.setVisibility(View.GONE);
+                    openFragment(Const.WEATHER_FRAGMENT, R.id.action_myweather, bundleWeather);
                 }
                 break;
             case R.id.action_favorites:
-                openFragment(new FavouritesFragment(), R.id.action_favorites, null);
+                openFragment(Const.FAVOURITES_FRAGMENT, R.id.action_favorites, null);
                 break;
             case R.id.action_search:
                 openActivity(this, SearchActivity.class);
@@ -158,40 +160,12 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void openFragment(Fragment fragment, int idFragment, Bundle bundle) {
-        if (bundle != null) {
-            fragment.setArguments(bundle);
-        }
-        this.idFragment = idFragment; // Запоминаем id нажатой менюшки, для того чтобы было выделение элемента меню, только при переходе на фрагменты
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction ft = fragmentManager.beginTransaction();
-        ft.replace(R.id.fragments_container, fragment);
-        ft.commit();
-    }
-
-
     @Override
     protected void onResume() {
         super.onResume();
         if (idFragment != 0) {
             navigationView.setCheckedItem(idFragment); //Делаем выделеным необходимый элемент меню
         }
-    }
-
-    private void loadingMapView() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MapView mv = new MapView(getApplicationContext());
-                    mv.onCreate(null);
-                    mv.onPause();
-                    mv.onDestroy();
-                } catch (Exception ignored) {
-
-                }
-            }
-        }).start();
     }
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -201,11 +175,9 @@ public class MainActivity extends AppCompatActivity
                     // Разрешение было одобрено.
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         if (mGoogleApiClient == null) {
-                            setupBuildGoogleApiClient();
-
+                            buildGoogleApiClient();
                         }
                     }
-
                 } else {
                     // Если пользователь отказал в доступе
                     progressBar.setVisibility(View.GONE);
@@ -220,36 +192,21 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1000) {
-            if(resultCode == Activity.RESULT_OK){
-//                openFragment(new WeatherFragment(), R.id.action_myweather, bundleWeather);// Открываем WeatherФрагмент
-            } if (resultCode == Activity.RESULT_CANCELED) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (bundleWeather != null) {
+                    layoutPermissionEnable.setVisibility(View.GONE);
+                    progressBar.setVisibility(View.GONE);
+                    openFragment(Const.WEATHER_FRAGMENT, R.id.action_myweather, bundleWeather);// Открываем WeatherФрагмент
+                } else {
+                    Toast.makeText(this, "Ошибка получения местоположения", Toast.LENGTH_SHORT).show();
+                }
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
                 progressBar.setVisibility(View.GONE);
                 layoutPermissionEnable.setVisibility(View.VISIBLE);
             }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    public boolean checkLocationPermissionActivity() {
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Запрашиваем доступ к ACCESS_FINE_LOCATION
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
-            }
-            return false;
-        } else {
-            return true;
         }
     }
 
@@ -268,42 +225,34 @@ public class MainActivity extends AppCompatActivity
         mLocationRequest.setInterval(1000);
         mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
-        // **************************
-        builder.setAlwaysShow(true); // this is the key ingredient
-        // **************************
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi
-                .checkLocationSettings(mGoogleApiClient, builder.build());
+
+        builder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        builder.setAlwaysShow(true);
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
             @Override
-            public void onResult(LocationSettingsResult result) {
-                final Status status = result.getStatus();
-                final LocationSettingsStates state = result
-                        .getLocationSettingsStates();
-                switch (status.getStatusCode()) {
+            public void onResult(@NonNull LocationSettingsResult result) {
+                statusLocation = result.getStatus();
+                switch (statusLocation.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can
-                        // initialize location
-                        // requests here.
+                        // местоположение включено
+                        layoutPermissionEnable.setVisibility(View.GONE);
+                        progressBar.setVisibility(View.GONE);
+                        openFragment(Const.WEATHER_FRAGMENT, R.id.action_myweather, bundleWeather);// Открываем WeatherФрагмент
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied. But could be
-                        // fixed by showing the user
-                        // a dialog.
+                        // Местоположение выключено, запускаем диалог с просьбой включить
                         try {
-                            // Show the dialog by calling
-                            // startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            status.startResolutionForResult(MainActivity.this, 1000);
+                            statusLocation.startResolutionForResult(MainActivity.this, 1000);
                         } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
+                            // Игнорируем ошибки
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have
-                        // no way to fix the
-                        // settings so we won't show the dialog.
+                        // Изменить параметры невозможно параметры
+                        progressBar.setVisibility(View.GONE);
+                        layoutPermissionEnable.setVisibility(View.VISIBLE);
+                        Toast.makeText(MainActivity.this, "Ошибка", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -315,7 +264,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnectionSuspended(int i) {
-
     }
 
     @Override
@@ -339,11 +287,32 @@ public class MainActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermissionActivity(); // Просим доступ к местоположению устройства.
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
-                setupBuildGoogleApiClient();
+                buildGoogleApiClient();
             }
         } else {
-            setupBuildGoogleApiClient();
+            buildGoogleApiClient();
 
+        }
+    }
+
+    public boolean checkLocationPermissionActivity() {
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Запрашиваем доступ к ACCESS_FINE_LOCATION
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+            return false;
+        } else {
+            return true;
         }
     }
 
@@ -351,24 +320,41 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onClick(View view) {
             layoutPermissionEnable.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
             getPermissionLocation();
         }
     };
 
-    public boolean CheckGpsStatus() {
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    private void loadingMapView() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    MapView mv = new MapView(getApplicationContext());
+                    mv.onCreate(null);
+                    mv.onPause();
+                    mv.onDestroy();
+                } catch (Exception ignored) {
+                }
+            }
+        }).start();
     }
 
-    private void setupBuildGoogleApiClient() {
-       // if (CheckGpsStatus()) {
-            buildGoogleApiClient();
-      //  } else {
-        //    progressBar.setVisibility(View.GONE);
-       //     layoutPermissionEnable.setVisibility(View.VISIBLE);
-
-           // Intent gpsOptionsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-          //  startActivity(gpsOptionsIntent);
-        //}
+    private void openFragment(String tag, int idFragment, Bundle bundle) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentByTag(tag);
+        if (fragment == null) {
+            if (tag.equals(Const.WEATHER_FRAGMENT)) {
+                fragment = new WeatherFragment();
+                fragment.setArguments(bundle);
+            }
+            if (tag.equals(Const.FAVOURITES_FRAGMENT)) {
+                fragment = new FavouritesFragment();
+            }
+        }
+        this.idFragment = idFragment; // Запоминаем id нажатой менюшки, для того чтобы было выделение элемента меню, только при переходе на фрагменты
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        ft.replace(R.id.fragments_container, fragment, tag);
+        ft.commit();
     }
 }

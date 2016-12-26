@@ -34,18 +34,21 @@ public class FavouritesFragment extends Fragment {
     private List<Favourite> favouriteList;
     private FavouritesAdapter favouriteRecyclerAdapter;
     private FavouriteRenameDialogFragment renameDialog;
+    private View viewRoot;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_favourites, container, false);
-        getActivity().setTitle("Места");
-        setupRecycler(view); //заполнение RecycleView
-        return view;
+        if (viewRoot == null) {
+            viewRoot = inflater.inflate(R.layout.fragment_favourites, container, false);
+            getActivity().setTitle("Места");
+            setupRecycler(); //заполнение RecycleView
+        }
+        return viewRoot;
     }
 
-    private void setupRecycler(final View view) {
-        recyclerViewFavourites = (RecyclerView) view.findViewById(R.id.recycler_view_favourite);
+    private void setupRecycler() {
+        recyclerViewFavourites = (RecyclerView) viewRoot.findViewById(R.id.recycler_view_favourite);
         recyclerViewFavourites.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewFavourites.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
         setupList();

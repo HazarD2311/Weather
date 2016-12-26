@@ -65,7 +65,7 @@ public class WeatherFragment extends Fragment {
         service = retrofit.create(APIService.class);
     }
 
-    private void setupRecycler(View view, List<ru.surfproject.app.weather.models.weatherresponse.List> listWeather) {
+    private void setupRecycler(View view, List<ListWeather> listWeather) {
         recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
         recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
         recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
@@ -74,7 +74,7 @@ public class WeatherFragment extends Fragment {
     }
 
     // Метод для заполнения recyclerViewWeather
-    private List<Weather> valuesForRecycler(List<ru.surfproject.app.weather.models.weatherresponse.List> listWeather) {
+    private List<Weather> valuesForRecycler(List<ListWeather> listWeather) {
         List<Weather> test = new ArrayList<>();
         String weather1;
         String weather2;

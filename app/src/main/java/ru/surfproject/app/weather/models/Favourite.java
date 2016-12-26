@@ -5,11 +5,17 @@ package ru.surfproject.app.weather.models;
  */
 
 public class Favourite {
-    private String city;                //навзание города
+    private String city; //название города
 
     public Favourite(String city) {
         this.city = city;
     }
 
-    public String getCity() { return city; }
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCity() {
+        return city;
+    }
 }

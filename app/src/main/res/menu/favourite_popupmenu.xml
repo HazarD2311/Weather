@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/favourite_menu_group">
+        <item
+            android:id="@+id/favourite_rename"
+            android:title="@string/renameFavourite"
+            android:visible="true" />
+        <item
+            android:id="@+id/favourite_delete"
+            android:title="@string/deleteFavourite"
+            android:visible="true" />
+    </group>
+
+</menu>

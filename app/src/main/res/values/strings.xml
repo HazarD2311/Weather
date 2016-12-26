@@ -24,5 +24,9 @@
     <!-- Знаки для погоды! -->
     <string name="signDegree">°</string>
     <string name="signPlus">+</string>
+    
+    <!-- Всплывающее меню для избранных -->
+    <string name="renameFavourite">Переименовать</string>
+    <string name="deleteFavourite">Удалить</string>
 
 </resources>

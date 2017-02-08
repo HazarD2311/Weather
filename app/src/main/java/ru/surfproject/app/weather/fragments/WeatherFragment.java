@@ -97,17 +97,26 @@ public class WeatherFragment extends Fragment {
 
     // Метод для заполнения recyclerViewWeather
     private List<Weather> valuesForRecycler(List<ListWeather> listWeather) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
         List<Weather> test = new ArrayList<>();
-        String weather1;
-        String weather2;
+        String weatherDay;
+        String weatherNight;
         for (int i = 0; i < listWeather.size(); i++) {
-            weather1 = String.valueOf(listWeather.get(i).temp.morn) + getString(R.string.signDegree);
-            weather2 = String.valueOf(listWeather.get(i).temp.night) + getString(R.string.signDegree);
-            Date date = new Date();
-            date.setTime(listWeather.get(i).dt * 1000);
-            String dataFormat = formatter.format(date);
-            test.add(new Weather(R.drawable.icon, dataFormat, String.valueOf(listWeather.get(i).weather.get(0).main), weather1, weather2));
+            weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
+            weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
+            Date date = new Date(listWeather.get(i).dt * 1000);
+
+            String drawableName = "weather" + listWeather.get(i).weather.get(0).icon;
+            //получаем из имени ресурса идентификатор картинки
+            int weatherIcon = getResources().getIdentifier(drawableName, "drawable", getContext().getPackageName());
+
+            Weather weather = new Weather();
+            weather.setImage(weatherIcon);
+            weather.setDay(date.getDay(), date.getDate(), date.getMonth());
+            weather.setTypeWeather(String.valueOf(listWeather.get(i).weather.get(0).main));
+            weather.setTemperatureDay(weatherDay);
+            weather.setTemperatureNight(weatherNight);
+
+            test.add(weather);
         }
         return test;
     }

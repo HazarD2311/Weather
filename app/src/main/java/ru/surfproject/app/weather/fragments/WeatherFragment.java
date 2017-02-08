@@ -15,10 +15,14 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -78,6 +82,7 @@ public class WeatherFragment extends Fragment {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://api.openweathermap.org/")
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(interceptorAndTimeOut())
                 .build();
         service = retrofit.create(APIService.class);
     }
@@ -92,6 +97,7 @@ public class WeatherFragment extends Fragment {
 
     // Метод для заполнения recyclerViewWeather
     private List<Weather> valuesForRecycler(List<ListWeather> listWeather) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
         List<Weather> test = new ArrayList<>();
         String weather1;
         String weather2;
@@ -99,37 +105,45 @@ public class WeatherFragment extends Fragment {
             weather1 = String.valueOf(listWeather.get(i).temp.morn) + getString(R.string.signDegree);
             weather2 = String.valueOf(listWeather.get(i).temp.night) + getString(R.string.signDegree);
             Date date = new Date();
-            date.setTime((long) listWeather.get(i).dt * 1000);
-            test.add(new Weather(R.drawable.icon, date.toString(), String.valueOf(listWeather.get(i).weather.get(0).main), weather1, weather2));
+            date.setTime(listWeather.get(i).dt * 1000);
+            String dataFormat = formatter.format(date);
+            test.add(new Weather(R.drawable.icon, dataFormat, String.valueOf(listWeather.get(i).weather.get(0).main), weather1, weather2));
         }
         return test;
     }
 
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
-        //отправляем запрос
-        callWeather = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
-        callWeather.enqueue(new Callback<WeatherResponse>() {
-            @Override
-            public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
-                progressBarWeather.setVisibility(View.GONE);
-                if (response.isSuccessful()) {
-                    if (response.body().city.name==null || response.body().list==null) {
-                        progressBarWeather.setVisibility(View.GONE);
-                        layoutNetworkError.setVisibility(View.VISIBLE);
-                        Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        getActivity().setTitle(response.body().city.name); // Устанавливаем имя города в титл город
-                        setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
+        if (lat == null || lon == null) {
+            progressBarWeather.setVisibility(View.GONE);
+            layoutNetworkError.setVisibility(View.VISIBLE);
+            Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
+        } else {
+            //отправляем запрос
+            callWeather = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
+            callWeather.enqueue(new Callback<WeatherResponse>() {
+                @Override
+                public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
+                    progressBarWeather.setVisibility(View.GONE);
+                    if (response.isSuccessful()) {
+                        if (response.body().city.name == null || response.body().list == null) {
+                            progressBarWeather.setVisibility(View.GONE);
+                            layoutNetworkError.setVisibility(View.VISIBLE);
+                            Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            getActivity().setTitle(response.body().city.name); // Устанавливаем имя города в титл город
+                            setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
+                        }
                     }
                 }
-            }
-            @Override
-            public void onFailure(Call<WeatherResponse> call, Throwable t) {
-                progressBarWeather.setVisibility(View.GONE);
-                layoutNetworkError.setVisibility(View.VISIBLE);
-                Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
-            }
-        });
+
+                @Override
+                public void onFailure(Call<WeatherResponse> call, Throwable t) {
+                    progressBarWeather.setVisibility(View.GONE);
+                    layoutNetworkError.setVisibility(View.VISIBLE);
+                    Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private View.OnClickListener clickBtnNetworkError = new View.OnClickListener() {
@@ -144,6 +158,21 @@ public class WeatherFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        callWeather.cancel(); // Отменяем запрос, если фрагмент не в фокусе пользователя
+        if (callWeather != null) {
+            callWeather.cancel(); // Отменяем запрос, если фрагмент не в фокусе пользователя
+        }
+    }
+
+    // Метод возвращает объект OkHttpClient
+    // В методе задаём логгирование и Timeout сетевого запросов
+    private OkHttpClient interceptorAndTimeOut() {
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        return new OkHttpClient().newBuilder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(interceptor)
+                .build();
     }
 }

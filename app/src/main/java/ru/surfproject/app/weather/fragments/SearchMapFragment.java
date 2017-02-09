@@ -2,6 +2,9 @@ package ru.surfproject.app.weather.fragments;
 
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -17,9 +20,15 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -44,6 +53,8 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
     private Marker currLocationMarker;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
+    private LocationSettingsRequest.Builder builder;
+    private Status statusLocation;
     private View view;
 
     @Nullable
@@ -55,9 +66,6 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         if (mapView != null) {
             mapView.getMapAsync(this);
         }
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkLocationPermissionFragment(); // Просим доступ к местоположению устройства.
-        }
         return view;
     }
 
@@ -65,11 +73,9 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setOnMapClickListener(this);
-
-        //Инициализация Google Play Services
+        getPermissionLocation(); // Получаем разрешения приложению
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                buildGoogleApiClient();
                 map.setMyLocationEnabled(true);
             }
         } else {
@@ -126,6 +132,34 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         locationRequest.setInterval(1000);
         locationRequest.setFastestInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true);
+        // builder.setNeedBle(true);
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult result) {
+                statusLocation = result.getStatus();
+                switch (statusLocation.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // Геопозиционирование включено
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Местоположение выключено, запускаем диалог с просьбой включить
+                        try {
+                            statusLocation.startResolutionForResult(getActivity(), 1000);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Игнорируем ошибки
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Изменить параметры не получилось
+                        break;
+                }
+            }
+        });
+
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         }
@@ -205,6 +239,18 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
             return false;
         } else {
             return true;
+        }
+    }
+
+    private void getPermissionLocation() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkLocationPermissionFragment(); // Просим доступ к местоположению устройства.
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
+                buildGoogleApiClient();
+            }
+        } else {
+            buildGoogleApiClient();
+
         }
     }
 }

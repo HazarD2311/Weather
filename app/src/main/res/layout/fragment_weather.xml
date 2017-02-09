@@ -3,16 +3,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view_main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/recycler_view_main">
-    </android.support.v7.widget.RecyclerView>
+        android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
+
     <ProgressBar
+        android:id="@+id/progress_fragment_weather"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:id="@+id/progress_fragment_weather"/>
+        android:layout_gravity="center" />
+
     <LinearLayout
         android:id="@+id/layout_network_error"
         android:layout_width="match_parent"
@@ -22,10 +24,10 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/tv_error"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Ошибка получения прогноза погоды" />
+            android:gravity="center" />
 
         <Button
             android:id="@+id/btn_network_error"

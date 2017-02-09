@@ -1,9 +1,18 @@
 package ru.surfproject.app.weather.fragments;
 
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,9 +22,21 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,30 +51,40 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.adapters.WeatherAdapter;
-import ru.surfproject.app.weather.models.Weather;
 import ru.surfproject.app.weather.R;
-import ru.surfproject.app.weather.models.weatherresponse.ListWeather;
-import ru.surfproject.app.weather.models.weatherresponse.WeatherResponse;
+import ru.surfproject.app.weather.models.Weather;
+import ru.surfproject.app.weather.models.response.WeatherWeek;
 import ru.surfproject.app.weather.network.APIService;
 
 /**
  * Created by pkorl on 03.12.2016.
  */
 
-public class WeatherFragment extends Fragment {
+public class WeatherFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private APIService service;
     private RecyclerView recyclerViewWeather;
     private ProgressBar progressBarWeather;
     private LinearLayout layoutNetworkError;
     private Button btnNetworkError;
+    private TextView tvError;
     private View viewRoot;
     private String lat;
     private String lon;
     private String cnt;
     private String units;
     private String appid;
-    private Call<WeatherResponse> callWeather;
+    private Call<WeatherWeek> callWeather;
+
+
+    private Location lastLocation;
+    private GoogleApiClient googleApiClient;
+    private LocationRequest locationRequest;
+    private LocationSettingsRequest.Builder builder;
+    private Status statusLocation;
+    private int ERROR_CODE;
+
+    private int countTest = 0;
 
     @Nullable
     @Override
@@ -63,18 +94,15 @@ public class WeatherFragment extends Fragment {
             progressBarWeather = (ProgressBar) viewRoot.findViewById(R.id.progress_fragment_weather);
             layoutNetworkError = (LinearLayout) viewRoot.findViewById(R.id.layout_network_error);
             btnNetworkError = (Button) viewRoot.findViewById(R.id.btn_network_error);
+            tvError = (TextView) viewRoot.findViewById(R.id.tv_error);
             btnNetworkError.setOnClickListener(clickBtnNetworkError);
             initRetrofit(); // Инициализируем Retrofit
-            Bundle bundle = getArguments();
-            if (bundle != null) {
-                lat = bundle.getString("latitude");
-                lon = bundle.getString("longitude");
-                cnt = "7";
-                units = "celsius";
-                appid = Const.WEATHER_API;
-                getWeather(lat, lon, cnt, units, appid);
-            }
+            cnt = "7";
+            units = "celsius";
+            appid = Const.WEATHER_API;
+            getPermissionLocation(); // Получаем разрешения приложению
         }
+
         return viewRoot;
     }
 
@@ -87,7 +115,7 @@ public class WeatherFragment extends Fragment {
         service = retrofit.create(APIService.class);
     }
 
-    private void setupRecycler(View view, List<ListWeather> listWeather) {
+    private void setupRecycler(View view, List<WeatherWeek.ListWeather> listWeather) {
         recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
         recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
         recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
@@ -96,7 +124,7 @@ public class WeatherFragment extends Fragment {
     }
 
     // Метод для заполнения recyclerViewWeather
-    private List<Weather> valuesForRecycler(List<ListWeather> listWeather) {
+    private List<Weather> valuesForRecycler(List<WeatherWeek.ListWeather> listWeather) {
         List<Weather> test = new ArrayList<>();
         String weatherDay;
         String weatherNight;
@@ -129,12 +157,15 @@ public class WeatherFragment extends Fragment {
         } else {
             //отправляем запрос
             callWeather = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
-            callWeather.enqueue(new Callback<WeatherResponse>() {
+            callWeather.enqueue(new Callback<WeatherWeek>() {
                 @Override
-                public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
+                public void onResponse(Call<WeatherWeek> call, Response<WeatherWeek> response) {
                     progressBarWeather.setVisibility(View.GONE);
                     if (response.isSuccessful()) {
                         if (response.body().city.name == null || response.body().list == null) {
+                            ERROR_CODE = 1;
+                            tvError.setText("Мы получили данные, но они с ошибкой");
+                            btnNetworkError.setText("Повторить");
                             progressBarWeather.setVisibility(View.GONE);
                             layoutNetworkError.setVisibility(View.VISIBLE);
                             Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
@@ -143,12 +174,17 @@ public class WeatherFragment extends Fragment {
                             setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
                         }
                     }
+                    progressBarWeather.setVisibility(View.GONE);
+                    layoutNetworkError.setVisibility(View.GONE);
                 }
 
                 @Override
-                public void onFailure(Call<WeatherResponse> call, Throwable t) {
+                public void onFailure(Call<WeatherWeek> call, Throwable t) {
+                    ERROR_CODE = 1;
                     progressBarWeather.setVisibility(View.GONE);
                     layoutNetworkError.setVisibility(View.VISIBLE);
+                    tvError.setText("Сетевой запрос выполнился с ошибкой");
+                    btnNetworkError.setText("Повторить");
                     Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -160,7 +196,20 @@ public class WeatherFragment extends Fragment {
         public void onClick(View view) {
             layoutNetworkError.setVisibility(View.GONE);
             progressBarWeather.setVisibility(View.VISIBLE);
-            getWeather(lat, lon, cnt, units, appid);
+            switch (ERROR_CODE) {
+                case 0:
+                    // Не предоставлены разрешения приложению
+                    getPermissionLocation();
+                    break;
+                case 1:
+                    // Сетевой запрос на получение погоды завершился с ошибкой
+                    getWeather(lat, lon, cnt, units, appid);
+                    break;
+                case 2:
+                    // Не включена геолокация
+                    buildGoogleApiClient();
+                    break;
+            }
         }
     };
 
@@ -183,5 +232,165 @@ public class WeatherFragment extends Fragment {
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .addInterceptor(interceptor)
                 .build();
+    }
+
+    /*-------------------------------------------------*/
+    protected synchronized void buildGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        googleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true);
+        // builder.setNeedBle(true);
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult result) {
+                statusLocation = result.getStatus();
+                switch (statusLocation.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // Геопозиционирование включено
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Местоположение выключено, запускаем диалог с просьбой включить
+                        try {
+                            statusLocation.startResolutionForResult(getActivity(), 1000);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Игнорируем ошибки
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Изменить параметры не получилось
+                        progressBarWeather.setVisibility(View.GONE);
+                        layoutNetworkError.setVisibility(View.VISIBLE);
+                        Toast.makeText(getActivity(), "Ошибка", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        });
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        //TODO почему-то постоянно(бесконечно) выполняется этот метод, после того, как мы предоставили доступ к геопозиции устройства приложению,
+        //TODO при последующих запусках такого не происходит.
+        //TODO Пока стоит костыль
+        countTest++;
+
+        lastLocation = location;
+        //Как только получили координаты, показываем погоду, скрываем прогрессбар
+        lat = String.valueOf(location.getLatitude());
+        lon = String.valueOf(location.getLongitude());
+
+        // Как только получили координаты пользователя, выполняем сетевой запрос
+        if (countTest == 1) {
+            getWeather(lat, lon, cnt, units, appid);
+        }
+
+        //Останавливаем обновление LocationServices
+        if (googleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+        }
+    }
+
+    // Метод получает инфу о том, предоставил ли пользователь резрешение ACCESS_FINE_LOCATION
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case Const.MY_PERMISSIONS_REQUEST_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Разрешение было одобрено.
+                    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        if (googleApiClient == null) {
+                            buildGoogleApiClient();
+                        }
+                    }
+
+                } else {
+                    // Если пользователь отказал в доступе
+                    ERROR_CODE = 0;
+                    progressBarWeather.setVisibility(View.GONE);
+                    layoutNetworkError.setVisibility(View.VISIBLE);
+                    tvError.setText("Разрешения не предоставлены");
+                    btnNetworkError.setText("Предоставить");
+                    Toast.makeText(getActivity(), "Разрешения не предоставлены!", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+            // Тут можно добавить еще пермишены.
+        }
+    }
+
+    private void getPermissionLocation() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkLocationPermissionFragment(); // Просим доступ к местоположению устройства.
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
+                buildGoogleApiClient();
+            }
+        } else {
+            buildGoogleApiClient();
+
+        }
+    }
+
+    public boolean checkLocationPermissionFragment() {
+        if (ContextCompat.checkSelfPermission(getContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Запрашиваем доступ к ACCESS_FINE_LOCATION
+            if (shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Const.MY_PERMISSIONS_REQUEST_LOCATION);
+            } else {
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1000) {
+            if (resultCode == Activity.RESULT_OK) {
+                // Пользователь включил геолокацию
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                // Пользователь не включил геолокацию
+                ERROR_CODE = 2;
+                progressBarWeather.setVisibility(View.GONE);
+                layoutNetworkError.setVisibility(View.VISIBLE);
+                tvError.setText("Не включена геолокация");
+                btnNetworkError.setText("Включить");
+            }
+        }
     }
 }

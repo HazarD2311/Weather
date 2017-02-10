@@ -3,6 +3,7 @@ package ru.surfproject.app.weather.fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -13,9 +14,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -37,9 +42,21 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.vision.text.Line;
 
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.R;
+import ru.surfproject.app.weather.models.response.WeatherWeek;
+import ru.surfproject.app.weather.network.APIService;
 
 /**
  * Created by pkorl on 27.11.2016.
@@ -57,16 +74,33 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
     private Status statusLocation;
     private View view;
 
+    private APIService service;
+    private String nameCity;
+    private String temp;
+    private WeatherWindowAdapter weatherWindowAdapter;
+    private ProgressBar progressWindowsInfo;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_map, container, false);
+        progressWindowsInfo = (ProgressBar) view.findViewById(R.id.progress_windows_info);
         mapView = (MapView) view.findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
         if (mapView != null) {
             mapView.getMapAsync(this);
         }
+        initRetrofit();
         return view;
+    }
+
+    private void initRetrofit() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://api.openweathermap.org/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(interceptorAndTimeOut())
+                .build();
+        service = retrofit.create(APIService.class);
     }
 
     @Override
@@ -82,6 +116,16 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
             buildGoogleApiClient();
             map.setMyLocationEnabled(true);
         }
+        //Отключаем возможность кликать по маркеру
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return false;
+            }
+        });
+        // Инициализируем кастомный InfoWindowAdapter
+        weatherWindowAdapter = new WeatherWindowAdapter(getActivity().getLayoutInflater());
+        map.setInfoWindowAdapter(weatherWindowAdapter);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -97,9 +141,9 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
     public void onMapClick(LatLng latLng) {
         map.clear(); // Очищаем карду от маркеров
         map.animateCamera(CameraUpdateFactory.newLatLng(latLng)); // Наводим камеру на место клика
-        map.addMarker(new MarkerOptions() // Добавляем маркер
-                .position(latLng)
-                .title(latLng.latitude + ", " + latLng.longitude));
+        currLocationMarker = map.addMarker(new MarkerOptions().position(latLng)); // Добавляем маркер
+        //Тестовый запрос на погоду
+        getWeather(String.valueOf(latLng.latitude), String.valueOf(latLng.longitude), "1", "celsius", Const.WEATHER_API);
     }
 
     @Override
@@ -186,7 +230,6 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
-        markerOptions.title(location.getLatitude() + ", " + location.getLongitude());
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         currLocationMarker = map.addMarker(markerOptions);
 
@@ -198,6 +241,9 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         if (googleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
         }
+        currLocationMarker.showInfoWindow(); // Делаем сразу видимой панель над маркером
+        // Тут делаем сетевой запрос, который возратит инфу о погоде
+        getWeather(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()), "1", "celsius", Const.WEATHER_API);
     }
 
     // Метод получает инфу о том, предоставил ли пользователь резрешение ACCESS_FINE_LOCATION
@@ -251,6 +297,78 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         } else {
             buildGoogleApiClient();
 
+        }
+    }
+
+    private void getWeather(String lat, String lon, String cnt, String units, String appid) {
+        progressWindowsInfo.setVisibility(View.VISIBLE);
+        //отправляем запрос
+        Call<WeatherWeek> callWeather = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
+        callWeather.enqueue(new Callback<WeatherWeek>() {
+            @Override
+            public void onResponse(Call<WeatherWeek> call, Response<WeatherWeek> response) {
+                if (response.isSuccessful()) {
+                    // Тут получили данные, сохраняем их и выводим в InfoWindow
+                    progressWindowsInfo.setVisibility(View.GONE);
+                    nameCity = String.valueOf(response.body().city.name);
+                    temp = String.valueOf(response.body().list.get(0).temp.day);
+                    weatherWindowAdapter.setNameCity(nameCity);
+                    weatherWindowAdapter.setTemp(temp);
+                    currLocationMarker.showInfoWindow(); // Делаем видимой панель над маркером (соответственно она инициализируется)
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WeatherWeek> call, Throwable t) {
+                progressWindowsInfo.setVisibility(View.GONE);
+                Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Метод возвращает объект OkHttpClient
+    // В методе задаём логгирование и Timeout сетевого запросов
+    private OkHttpClient interceptorAndTimeOut() {
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        return new OkHttpClient().newBuilder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(interceptor)
+                .build();
+    }
+
+    public class WeatherWindowAdapter implements GoogleMap.InfoWindowAdapter {
+        private LayoutInflater inflater = null;
+        private String nameCity;
+        private String temp;
+
+        public WeatherWindowAdapter(LayoutInflater inflater) {
+            this.inflater = inflater;
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return (null);
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            View popup = inflater.inflate(R.layout.marker_info, null);
+            TextView tv = (TextView) popup.findViewById(R.id.tv_name_city);
+            tv.setText(nameCity);
+            tv = (TextView) popup.findViewById(R.id.tv_temp);
+            tv.setText(temp);
+            return (popup);
+        }
+
+        public void setNameCity(String nameCity) {
+            this.nameCity = nameCity;
+        }
+
+        public void setTemp(String temp) {
+            this.temp = temp;
         }
     }
 }

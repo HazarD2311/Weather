@@ -140,7 +140,7 @@ public class WeatherFragment extends Fragment implements GoogleApiClient.Connect
             String drawableName = "weather" + listWeather.get(i).weather.get(0).icon;
             //получаем из имени ресурса идентификатор картинки
             int weatherIcon = getResources().getIdentifier(drawableName, "drawable", getContext().getPackageName());
-            SimpleDateFormat dateFormat = new SimpleDateFormat("E, d MMMM", Locale.forLanguageTag("ru"));
+            SimpleDateFormat dateFormat = new SimpleDateFormat("E, d MMMM", Locale.getDefault());
             weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
             weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
 

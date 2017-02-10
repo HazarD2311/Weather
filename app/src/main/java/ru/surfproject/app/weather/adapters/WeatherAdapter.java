@@ -27,14 +27,14 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
 
     @Override
     public WeatherAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.items_recycler_main, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.items_recycler_weather, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Weather mainItemsRecyclerAdapter = weatherList.get(position);
-        holder.imageTypeweather.setImageResource(mainItemsRecyclerAdapter.getImage());
+        holder.imageTypeWeather.setImageResource(mainItemsRecyclerAdapter.getImage());
         holder.textViewWeekday.setText(mainItemsRecyclerAdapter.getDay());
         holder.textViewTypeWeather.setText(mainItemsRecyclerAdapter.getTypeWeather());
         holder.textViewTemperature1.setText(mainItemsRecyclerAdapter.getTemperatureDay());
@@ -48,7 +48,7 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageTypeweather;
+        ImageView imageTypeWeather;
         TextView textViewWeekday;
         TextView textViewTypeWeather;
         TextView textViewTemperature1;
@@ -56,7 +56,7 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
 
         public ViewHolder(View itemView) {
             super(itemView);
-            imageTypeweather = (ImageView) itemView.findViewById(R.id.img_type_weather);
+            imageTypeWeather = (ImageView) itemView.findViewById(R.id.img_type_weather);
             textViewWeekday = (TextView) itemView.findViewById(R.id.tv_weekday);
             textViewTypeWeather = (TextView) itemView.findViewById(R.id.tv_type_weather);
             textViewTemperature1 = (TextView) itemView.findViewById(R.id.tv_temperature1);

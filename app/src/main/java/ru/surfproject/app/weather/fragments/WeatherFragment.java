@@ -16,6 +16,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,9 +38,11 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -97,7 +100,7 @@ public class WeatherFragment extends Fragment implements GoogleApiClient.Connect
             tvError = (TextView) viewRoot.findViewById(R.id.tv_error);
             btnNetworkError.setOnClickListener(clickBtnNetworkError);
             initRetrofit(); // Инициализируем Retrofit
-            cnt = "7";
+            cnt = "10";
             units = "celsius";
             appid = Const.WEATHER_API;
             getPermissionLocation(); // Получаем разрешения приложению
@@ -125,28 +128,32 @@ public class WeatherFragment extends Fragment implements GoogleApiClient.Connect
 
     // Метод для заполнения recyclerViewWeather
     private List<Weather> valuesForRecycler(List<WeatherWeek.ListWeather> listWeather) {
-        List<Weather> test = new ArrayList<>();
+        List<Weather> weatherArr = new ArrayList<>();
         String weatherDay;
         String weatherNight;
+        Date date;
+
         for (int i = 0; i < listWeather.size(); i++) {
-            weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
-            weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
-            Date date = new Date(listWeather.get(i).dt * 1000);
+            date = new Date();
+            date.setTime((long) listWeather.get(i).dt * 1000);
 
             String drawableName = "weather" + listWeather.get(i).weather.get(0).icon;
             //получаем из имени ресурса идентификатор картинки
             int weatherIcon = getResources().getIdentifier(drawableName, "drawable", getContext().getPackageName());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("E, d MMMM", Locale.forLanguageTag("ru"));
+            weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
+            weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
 
             Weather weather = new Weather();
             weather.setImage(weatherIcon);
-            weather.setDay(date.getDay(), date.getDate(), date.getMonth());
-            weather.setTypeWeather(String.valueOf(listWeather.get(i).weather.get(0).main));
+            weather.setDay(dateFormat.format(date));
+            weather.setTypeWeather(String.valueOf(listWeather.get(i).weather.get(0).description));
             weather.setTemperatureDay(weatherDay);
             weather.setTemperatureNight(weatherNight);
 
-            test.add(weather);
+            weatherArr.add(weather);
         }
-        return test;
+        return weatherArr;
     }
 
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {

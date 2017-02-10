@@ -1,5 +1,12 @@
 package ru.surfproject.app.weather.models;
 
+import android.util.MonthDisplayHelper;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+
 /**
  * Created by pkorl on 04.12.2016.
  */
@@ -10,75 +17,18 @@ public class Weather {
     private String typeWeather;
     private String temperatureDay;
     private String temperatureNight;
+    private Locale locale;
 
     public Weather() {
 
     }
 
-    public Weather(int image, String day, String typeWeather, String temperature1, String temperature2) {
+    public Weather(int image, String day, String typeWeather, String temperatureDay, String temperatureNight) {
         this.image = image;
         this.day = day;
         this.typeWeather = typeWeather;
-        this.temperatureDay = temperature1;
-        this.temperatureNight = temperature2;
-    }
-
-    public void setDay(int dayOfTheWeek, int day, int month) {
-        this.day = (parseDayOfTheWeek(dayOfTheWeek) + ", " + String.valueOf(day) + " " + parseMonth(month));
-    }
-
-    private String parseMonth(int month) {
-        switch (month) {
-            case 0:
-                return "января";
-            case 1:
-                return "февраля";
-            case 2:
-                return "марта";
-            case 3:
-                return "апреля";
-            case 4:
-                return "май";
-            case 5:
-                return "июня";
-            case 6:
-                return "июля";
-            case 7:
-                return "августа";
-            case 8:
-                return "сентября";
-            case 9:
-                return "октября";
-            case 10:
-                return "ноября";
-            case 11:
-                return "декабря";
-            default:
-                return null;
-        }
-    }
-
-    private String parseDayOfTheWeek(int day) {
-        switch (day) {
-            case 0:
-                return "Вс";
-//                return getString(R.string.sunday);
-            case 1:
-                return "Пн";
-            case 2:
-                return "Вт";
-            case 3:
-                return "Ср";
-            case 4:
-                return "Чт";
-            case 5:
-                return "Пт";
-            case 6:
-                return "Сб";
-
-            default:
-                return null;
-        }
+        this.temperatureDay = temperatureDay;
+        this.temperatureNight = temperatureNight;
     }
 
     public int getImage() {
@@ -119,5 +69,9 @@ public class Weather {
 
     public void setTemperatureNight(String temperatureNight) {
         this.temperatureNight = temperatureNight;
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 }

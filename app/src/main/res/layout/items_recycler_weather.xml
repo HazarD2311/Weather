@@ -4,37 +4,43 @@
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:paddingBottom="8dp"
+    android:paddingTop="8dp">
 
     <ImageView
         android:id="@+id/img_type_weather"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginRight="5dp"
+        android:layout_marginRight="10dp"
         android:src="@drawable/icon" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="2"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/tv_weekday"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:gravity="center"
             android:text="Сегодня"
             android:textColor="@android:color/black"
-            android:textSize="16sp" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/tv_type_weather"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:gravity="center"
             android:text="Идёт снег"
-            android:textColor="@android:color/black"
-            android:textSize="20sp" />
+            android:textColor="@color/gray_type_weather"
+            android:textSize="14sp" />
     </LinearLayout>
 
     <LinearLayout

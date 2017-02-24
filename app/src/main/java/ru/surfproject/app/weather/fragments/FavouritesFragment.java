@@ -39,11 +39,9 @@ public class FavouritesFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if (viewRoot == null) {
-            viewRoot = inflater.inflate(R.layout.fragment_favourites, container, false);
-            getActivity().setTitle("Места");
-            setupRecycler(); //заполнение RecycleView
-        }
+        viewRoot = inflater.inflate(R.layout.fragment_favourites, container, false);
+        getActivity().setTitle("Места");
+        setupRecycler(); //заполнение RecycleView
         return viewRoot;
     }
 

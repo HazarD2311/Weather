@@ -33,12 +33,12 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Weather mainItemsRecyclerAdapter = weatherList.get(position);
-        holder.imageTypeWeather.setImageResource(mainItemsRecyclerAdapter.getImage());
-        holder.textViewWeekday.setText(mainItemsRecyclerAdapter.getDay());
-        holder.textViewTypeWeather.setText(mainItemsRecyclerAdapter.getTypeWeather());
-        holder.textViewTemperature1.setText(mainItemsRecyclerAdapter.getTemperatureDay());
-        holder.textViewTemperature2.setText(mainItemsRecyclerAdapter.getTemperatureNight());
+        Weather weather = weatherList.get(position);
+        holder.imageTypeWeather.setImageResource(weather.getImage());
+        holder.textViewWeekday.setText(weather.getDay());
+        holder.textViewTypeWeather.setText(weather.getTypeWeather());
+        holder.textViewTemperature1.setText(weather.getTemperatureDay());
+        holder.textViewTemperature2.setText(weather.getTemperatureNight());
 
     }
 

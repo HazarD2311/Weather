@@ -2,38 +2,21 @@ package ru.surfproject.app.weather.fragments;
 
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -42,7 +25,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.vision.text.Line;
 
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +36,9 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import ru.surfproject.app.weather.Const;
+import ru.surfproject.app.weather.FragmentLocation;
 import ru.surfproject.app.weather.R;
+import ru.surfproject.app.weather.RetrofitInit;
 import ru.surfproject.app.weather.models.response.WeatherWeek;
 import ru.surfproject.app.weather.network.APIService;
 
@@ -62,23 +46,17 @@ import ru.surfproject.app.weather.network.APIService;
  * Created by pkorl on 27.11.2016.
  */
 
-public class SearchMapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class SearchMapFragment extends FragmentLocation implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
 
     private GoogleMap map;
     private MapView mapView;
-    private Location lastLocation; // Координаты пользователя
     private Marker currLocationMarker;
-    private GoogleApiClient googleApiClient;
-    private LocationRequest locationRequest;
-    private LocationSettingsRequest.Builder builder;
-    private Status statusLocation;
     private View view;
-
-    private APIService service;
     private String nameCity;
     private String temp;
     private WeatherWindowAdapter weatherWindowAdapter;
     private ProgressBar progressWindowsInfo;
+    private RetrofitInit retrofitInit;
 
     @Nullable
     @Override
@@ -90,18 +68,11 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         if (mapView != null) {
             mapView.getMapAsync(this);
         }
-        initRetrofit();
+        retrofitInit = new RetrofitInit();
+        retrofitInit.initRetrofit();
         return view;
     }
 
-    private void initRetrofit() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://api.openweathermap.org/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(interceptorAndTimeOut())
-                .build();
-        service = retrofit.create(APIService.class);
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -128,14 +99,6 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
         map.setInfoWindowAdapter(weatherWindowAdapter);
     }
 
-    protected synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(getActivity())
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        googleApiClient.connect();
-    }
 
     @Override
     public void onMapClick(LatLng latLng) {
@@ -168,55 +131,6 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(1000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-
-        builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
-        builder.setAlwaysShow(true);
-        // builder.setNeedBle(true);
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(@NonNull LocationSettingsResult result) {
-                statusLocation = result.getStatus();
-                switch (statusLocation.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // Геопозиционирование включено
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Местоположение выключено, запускаем диалог с просьбой включить
-                        try {
-                            statusLocation.startResolutionForResult(getActivity(), 1000);
-                        } catch (IntentSender.SendIntentException e) {
-                            // Игнорируем ошибки
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Изменить параметры не получилось
-                        break;
-                }
-            }
-        });
-
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
     }
 
     @Override
@@ -303,7 +217,7 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
         progressWindowsInfo.setVisibility(View.VISIBLE);
         //отправляем запрос
-        Call<WeatherWeek> callWeather = service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
+        Call<WeatherWeek> callWeather = retrofitInit.service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
         callWeather.enqueue(new Callback<WeatherWeek>() {
             @Override
             public void onResponse(Call<WeatherWeek> call, Response<WeatherWeek> response) {
@@ -324,19 +238,6 @@ public class SearchMapFragment extends Fragment implements OnMapReadyCallback, G
                 Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    // Метод возвращает объект OkHttpClient
-    // В методе задаём логгирование и Timeout сетевого запросов
-    private OkHttpClient interceptorAndTimeOut() {
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        return new OkHttpClient().newBuilder()
-                .connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .addInterceptor(interceptor)
-                .build();
     }
 
     public class WeatherWindowAdapter implements GoogleMap.InfoWindowAdapter {

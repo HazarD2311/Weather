@@ -11,4 +11,6 @@ public class Const {
     // Фрагменты
     public static final String WEATHER_FRAGMENT = "WEATHER_FRAGMENT";
     public static final String FAVOURITES_FRAGMENT = "FAVOURITES_FRAGMENT";
+
+    public static final String BASE_URL = "http://api.openweathermap.org/";
 }

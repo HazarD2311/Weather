@@ -17,18 +17,25 @@ public class Weather {
     private String typeWeather;
     private String temperatureDay;
     private String temperatureNight;
-    private Locale locale;
+    private String humidity;
+    private String pressure;
+    private String windSpeed;
+    private String windDirection;
 
     public Weather() {
 
     }
 
-    public Weather(int image, String day, String typeWeather, String temperatureDay, String temperatureNight) {
+    public Weather(int image, String day, String typeWeather, String temperatureDay, String temperatureNight, String humidity, String pressure, String windSpeed, String windDirection) {
         this.image = image;
         this.day = day;
         this.typeWeather = typeWeather;
         this.temperatureDay = temperatureDay;
         this.temperatureNight = temperatureNight;
+        this.humidity = humidity;
+        this.pressure = pressure;
+        this.windSpeed = windSpeed;
+        this.windDirection = windDirection;
     }
 
     public int getImage() {
@@ -51,27 +58,20 @@ public class Weather {
         return temperatureNight;
     }
 
-    public void setImage(int image) {
-        this.image = image;
+    public String getHumidity() {
+        return "Влажность: " + humidity;
     }
 
-    public void setDay(String day) {
-        this.day = day;
+    public String getPressure() {
+        return "Давление: " + pressure;
     }
 
-    public void setTypeWeather(String typeWeather) {
-        this.typeWeather = typeWeather;
+    public String getWindSpeed() {
+        return "Скорость ветра: " + windSpeed;
     }
 
-    public void setTemperatureDay(String temperatureDay) {
-        this.temperatureDay = temperatureDay;
+    public String getWindDirection() {
+        return "Направление ветра: " + windDirection+"°";
     }
 
-    public void setTemperatureNight(String temperatureNight) {
-        this.temperatureNight = temperatureNight;
-    }
-
-    public void setLocale(Locale locale) {
-        this.locale = locale;
-    }
 }

@@ -9,6 +9,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.surfproject.app.weather.MainActivity;
 import ru.surfproject.app.weather.adapters.FavouritesAdapter;
 import ru.surfproject.app.weather.models.Favourite;
 import ru.surfproject.app.weather.R;
@@ -40,7 +42,10 @@ public class FavouritesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewRoot = inflater.inflate(R.layout.fragment_favourites, container, false);
-        getActivity().setTitle("Места");
+        Toolbar toolbar = (Toolbar) viewRoot.findViewById(R.id.toolbar);
+        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
+
+        toolbar.setTitle("Места");
         setupRecycler(); //заполнение RecycleView
         return viewRoot;
     }

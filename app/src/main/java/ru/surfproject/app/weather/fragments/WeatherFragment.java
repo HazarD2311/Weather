@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +42,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.FragmentLocation;
+import ru.surfproject.app.weather.MainActivity;
 import ru.surfproject.app.weather.RetrofitInit;
 import ru.surfproject.app.weather.adapters.WeatherAdapter;
 import ru.surfproject.app.weather.R;
@@ -69,11 +71,20 @@ public class WeatherFragment extends FragmentLocation {
     private int ERROR_CODE;
     private int countTest = 0;
     private RetrofitInit retrofitInit;
+    private  Toolbar toolbarCollapsing;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewRoot = inflater.inflate(R.layout.fragment_weather, container, false);
+
+        toolbarCollapsing = (Toolbar) viewRoot.findViewById(R.id.toolbar_collapsing);
+        ((MainActivity)getActivity()).setSupportActionBar(toolbarCollapsing);
+        //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+       // ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+       // drawer.addDrawerListener(toggle);
+       // toggle.syncState();
+
         progressBar = (ProgressBar) viewRoot.findViewById(R.id.progress_fragment_weather);
         placeHolderNetwork = (LinearLayout) viewRoot.findViewById(R.id.layout_network_error);
         btnRepeatCommand = (Button) viewRoot.findViewById(R.id.btn_network_error);
@@ -92,7 +103,7 @@ public class WeatherFragment extends FragmentLocation {
         recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
         recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
         recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
-        WeatherAdapter mainRecyclerAdapter = new WeatherAdapter(valuesForRecycler(listWeather)); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
+        WeatherAdapter mainRecyclerAdapter = new WeatherAdapter(valuesForRecycler(listWeather), getContext()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
         recyclerViewWeather.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewWeather
     }
 
@@ -114,13 +125,15 @@ public class WeatherFragment extends FragmentLocation {
             weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
             weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
 
-            Weather weather = new Weather();
-            weather.setImage(weatherIcon);
-            weather.setDay(dateFormat.format(date));
-            weather.setTypeWeather(String.valueOf(listWeather.get(i).weather.get(0).description));
-            weather.setTemperatureDay(weatherDay);
-            weather.setTemperatureNight(weatherNight);
-
+            Weather weather = new Weather(weatherIcon,
+                    dateFormat.format(date),
+                    String.valueOf(listWeather.get(i).weather.get(0).description),
+                    weatherDay,
+                    weatherNight,
+                    String.valueOf(listWeather.get(i).humidity),
+                    String.valueOf(listWeather.get(i).pressure),
+                    String.valueOf(listWeather.get(i).speed),
+                    String.valueOf(listWeather.get(i).deg));
             weatherArr.add(weather);
         }
         return weatherArr;
@@ -147,7 +160,7 @@ public class WeatherFragment extends FragmentLocation {
                             placeHolderNetwork.setVisibility(View.VISIBLE);
                             Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
                         } else {
-                            getActivity().setTitle(response.body().city.name); // Устанавливаем имя города в титл город
+                            toolbarCollapsing.setTitle(response.body().city.name); // Устанавливаем имя города в титл город
                             setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
                         }
                     }

@@ -6,30 +6,9 @@
 
     <EditText
         android:id="@+id/edit_dialog_favourite_rename"
-        android:padding="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Введите название места" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="right">
-
-        <Button
-            android:id="@+id/cancel_dialog_favourite_rename"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:text="Отмена" />
-
-        <Button
-            android:id="@+id/ok_dialog_favourite_rename"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:text="Ок" />
-
-    </LinearLayout>
+        android:hint="Введите название места"
+        android:padding="15dp" />
 
 </LinearLayout>

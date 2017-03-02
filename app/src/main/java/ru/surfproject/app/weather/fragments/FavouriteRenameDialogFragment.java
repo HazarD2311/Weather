@@ -1,63 +1,55 @@
 package ru.surfproject.app.weather.fragments;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapters.FavouritesAdapter;
+
 /**
  * Created by ПК on 12/25/2016.
  * Диалоговое окно для переименования избранного места
  */
 
-public class FavouriteRenameDialogFragment extends DialogFragment {
+public class FavouriteRenameDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
-    private Button cancelBtn;
-    private Button okBtn;
     private EditText renameEditText;
     private int position;
     private String newName;
     private FavouritesAdapter favouritesAdapter;
+    private View form = null;
 
-    @Nullable
+    @NonNull
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        getDialog().setTitle("Редактировать место");
-        View view = inflater.inflate(R.layout.dialog_favourite_rename, null);
-        cancelBtn = (Button) view.findViewById(R.id.cancel_dialog_favourite_rename);
-        okBtn = (Button) view.findViewById(R.id.ok_dialog_favourite_rename);
-        renameEditText = (EditText) view.findViewById(R.id.edit_dialog_favourite_rename);
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        form = getActivity().getLayoutInflater().inflate(R.layout.dialog_favourite_rename, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        cancelBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dismiss();
-            }
-        });
+        return builder
+                .setTitle("Редактировать место")
+                .setView(form)
+                .setPositiveButton("Ок", this)
+                .setNegativeButton("Отмена", null)
+                .create();
+    }
 
-        okBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //считываем текст с поля
-                if (renameEditText.getText().toString().equals("")) {
-                    Toast.makeText(getContext(), "Вы не ввели название", Toast.LENGTH_SHORT).show();
-                } else {
-                    newName = renameEditText.getText().toString();
-                    favouritesAdapter.renameFavourite(position, newName);
-                    dismiss();
-                }
-            }
-        });
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        renameEditText = (EditText) form.findViewById(R.id.edit_dialog_favourite_rename);
+        newName = renameEditText.getText().toString();
 
-        return view;
+        if (newName.equals("")) {
+            Toast.makeText(getContext(), "Вы не ввели название", Toast.LENGTH_SHORT).show();
+        } else {
+            favouritesAdapter.renameFavourite(position, newName);
+        }
     }
 
     public void setFavouritesAdapter(FavouritesAdapter favouritesAdapter) {
@@ -67,4 +59,5 @@ public class FavouriteRenameDialogFragment extends DialogFragment {
     public void setPosition(int position) {
         this.position = position;
     }
+
 }

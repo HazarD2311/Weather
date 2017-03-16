@@ -13,4 +13,5 @@ public class Const {
     public static final String FAVOURITES_FRAGMENT = "FAVOURITES_FRAGMENT";
 
     public static final String BASE_URL = "http://api.openweathermap.org/";
+    public static final String KEY_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
 }

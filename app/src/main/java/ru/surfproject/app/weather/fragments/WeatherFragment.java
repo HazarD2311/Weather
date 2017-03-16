@@ -5,16 +5,19 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.SQLException;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,30 +28,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationServices;
+import com.j256.ormlite.dao.Dao;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.FragmentLocation;
 import ru.surfproject.app.weather.MainActivity;
 import ru.surfproject.app.weather.RetrofitInit;
+import ru.surfproject.app.weather.Utilities;
 import ru.surfproject.app.weather.adapters.WeatherAdapter;
 import ru.surfproject.app.weather.R;
+import ru.surfproject.app.weather.database.DBHelper;
 import ru.surfproject.app.weather.models.Weather;
 import ru.surfproject.app.weather.models.response.WeatherWeek;
-import ru.surfproject.app.weather.network.APIService;
 
 /**
  * Created by pkorl on 03.12.2016.
@@ -71,7 +71,8 @@ public class WeatherFragment extends FragmentLocation {
     private int ERROR_CODE;
     private int countTest = 0;
     private RetrofitInit retrofitInit;
-    private  Toolbar toolbarCollapsing;
+    private Toolbar toolbarCollapsing;
+    private SwipeRefreshLayout refreshWeather;
 
     @Nullable
     @Override
@@ -79,11 +80,18 @@ public class WeatherFragment extends FragmentLocation {
         viewRoot = inflater.inflate(R.layout.fragment_weather, container, false);
 
         toolbarCollapsing = (Toolbar) viewRoot.findViewById(R.id.toolbar_collapsing);
-        ((MainActivity)getActivity()).setSupportActionBar(toolbarCollapsing);
+        ((MainActivity) getActivity()).setSupportActionBar(toolbarCollapsing);
         //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-       // ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-       // drawer.addDrawerListener(toggle);
-       // toggle.syncState();
+        // ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        // drawer.addDrawerListener(toggle);
+        // toggle.syncState();
+        refreshWeather = (SwipeRefreshLayout) viewRoot.findViewById(R.id.refresh_weather);
+        refreshWeather.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getWeather(lat, lon, cnt, units, appid);
+            }
+        });
 
         progressBar = (ProgressBar) viewRoot.findViewById(R.id.progress_fragment_weather);
         placeHolderNetwork = (LinearLayout) viewRoot.findViewById(R.id.layout_network_error);
@@ -100,10 +108,22 @@ public class WeatherFragment extends FragmentLocation {
     }
 
     private void setupRecycler(View view, List<WeatherWeek.ListWeather> listWeather) {
-        recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
-        recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
-        recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
+        if (recyclerViewWeather == null) {
+            recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
+            recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
+            recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
+        }
         WeatherAdapter mainRecyclerAdapter = new WeatherAdapter(valuesForRecycler(listWeather), getContext()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
+        recyclerViewWeather.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewWeather
+    }
+
+    private void setupRecyclerExistWeather(View view, List<Weather> listWeather) {
+        if (recyclerViewWeather == null) {
+            recyclerViewWeather = (RecyclerView) view.findViewById(R.id.recycler_view_main);
+            recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
+            recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
+        }
+        WeatherAdapter mainRecyclerAdapter = new WeatherAdapter(listWeather, getContext()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
         recyclerViewWeather.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewWeather
     }
 
@@ -113,7 +133,6 @@ public class WeatherFragment extends FragmentLocation {
         String weatherDay;
         String weatherNight;
         Date date;
-
         for (int i = 0; i < listWeather.size(); i++) {
             date = new Date();
             date.setTime((long) listWeather.get(i).dt * 1000);
@@ -125,19 +144,44 @@ public class WeatherFragment extends FragmentLocation {
             weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
             weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
 
-            Weather weather = new Weather(weatherIcon,
-                    dateFormat.format(date),
-                    String.valueOf(listWeather.get(i).weather.get(0).description),
-                    weatherDay,
-                    weatherNight,
-                    String.valueOf(listWeather.get(i).humidity),
-                    String.valueOf(listWeather.get(i).pressure),
-                    String.valueOf(listWeather.get(i).speed),
-                    String.valueOf(listWeather.get(i).deg));
+            Weather weather = new Weather();
             weatherArr.add(weather);
+            weather.setImage(weatherIcon);
+            weather.setDay(dateFormat.format(date));
+            weather.setTypeWeather(String.valueOf(listWeather.get(i).weather.get(0).description));
+            weather.setTemperatureDay(weatherDay);
+            weather.setTemperatureNight(weatherNight);
+            weather.setHumidity(String.valueOf(listWeather.get(i).humidity));
+            weather.setPressure(String.valueOf(listWeather.get(i).pressure));
+            weather.setWindSpeed(String.valueOf(listWeather.get(i).speed));
+            weather.setDirection(String.valueOf(listWeather.get(i).deg));
+            weather.setTime(Utilities.getDatetimeNow());
+
+
+            // Добавление в БД
+            DBHelper helper = new DBHelper(getContext());
+            Dao<Weather, Integer> weatherDao = null;
+            try {
+                weatherDao = helper.getWeatherDao();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (weatherDao != null) {
+                    weatherDao.createOrUpdate(weather); // Апдейтим или создаём
+                    Log.d("DATABASE", "Погодо успешно добавлена в БД");
+                } else {
+                    Log.d("DATABASE", "weatherDao == null");
+                }
+            } catch (SQLException | java.sql.SQLException e) {
+                e.printStackTrace();
+                Log.d("DATABASE", "Ошибка:" + e.getMessage());
+            }
+
         }
         return weatherArr;
     }
+
 
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
         if (lat == null || lon == null) {
@@ -154,10 +198,14 @@ public class WeatherFragment extends FragmentLocation {
                     if (response.isSuccessful()) {
                         if (response.body().city.name == null || response.body().list == null) {
                             ERROR_CODE = 1;
-                            errorMessageTextView.setText("Мы получили данные, но они с ошибкой");
-                            btnRepeatCommand.setText("Повторить");
-                            progressBar.setVisibility(View.GONE);
-                            placeHolderNetwork.setVisibility(View.VISIBLE);
+                            if (refreshWeather.isRefreshing()) {
+                                refreshWeather.setRefreshing(false);
+                            } else {
+                                errorMessageTextView.setText("Мы получили данные, но они с ошибкой");
+                                btnRepeatCommand.setText("Повторить");
+                                progressBar.setVisibility(View.GONE);
+                                placeHolderNetwork.setVisibility(View.VISIBLE);
+                            }
                             Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
                         } else {
                             toolbarCollapsing.setTitle(response.body().city.name); // Устанавливаем имя города в титл город
@@ -166,15 +214,22 @@ public class WeatherFragment extends FragmentLocation {
                     }
                     progressBar.setVisibility(View.GONE);
                     placeHolderNetwork.setVisibility(View.GONE);
+                    if (refreshWeather.isRefreshing()) {
+                        refreshWeather.setRefreshing(false);
+                    }
                 }
 
                 @Override
                 public void onFailure(Call<WeatherWeek> call, Throwable t) {
                     ERROR_CODE = 1;
-                    progressBar.setVisibility(View.GONE);
-                    placeHolderNetwork.setVisibility(View.VISIBLE);
-                    errorMessageTextView.setText("Сетевой запрос выполнился с ошибкой");
-                    btnRepeatCommand.setText("Повторить");
+                    if (refreshWeather.isRefreshing()) {
+                        refreshWeather.setRefreshing(false);
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        placeHolderNetwork.setVisibility(View.VISIBLE);
+                        errorMessageTextView.setText("Сетевой запрос выполнился с ошибкой");
+                        btnRepeatCommand.setText("Повторить");
+                    }
                     Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -192,8 +247,15 @@ public class WeatherFragment extends FragmentLocation {
                     getPermissionLocation();
                     break;
                 case 1:
-                    // Сетевой запрос на получение погоды завершился с ошибкой
-                    getWeather(lat, lon, cnt, units, appid);
+                    List<Weather> weather = weatherFromBD();
+                    if (weather.size() != 0) {
+                        setupRecyclerExistWeather(viewRoot, weather); // Заполнение recyclerViewWeather
+                        progressBar.setVisibility(View.GONE);
+                        placeHolderNetwork.setVisibility(View.GONE);
+                    } else {
+                        // Сетевой запрос на получение погоды завершился с ошибкой
+                        getWeather(lat, lon, cnt, units, appid);
+                    }
                     break;
                 case 2:
                     // Не включена геолокация
@@ -211,6 +273,23 @@ public class WeatherFragment extends FragmentLocation {
         }
     }
 
+    private List<Weather> weatherFromBD() {
+        DBHelper helper = new DBHelper(getContext());
+        Dao<Weather, Integer> weatherDao = null;
+        try {
+            weatherDao = helper.getWeatherDao();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (weatherDao != null) {
+                return weatherDao.queryForAll();
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     // Метод получает инфу о том, предоставил ли пользователь резрешение ACCESS_FINE_LOCATION
     @Override
@@ -302,7 +381,15 @@ public class WeatherFragment extends FragmentLocation {
 
         // Как только получили координаты пользователя, выполняем сетевой запрос
         if (countTest == 1) {
-            getWeather(lat, lon, cnt, units, appid);
+            List<Weather> weather = weatherFromBD();
+            if (weather.size() != 0) {
+                setupRecyclerExistWeather(viewRoot, weather); // Заполнение recyclerViewWeather
+                progressBar.setVisibility(View.GONE);
+                placeHolderNetwork.setVisibility(View.GONE);
+            } else {
+                // Сетевой запрос на получение погоды завершился с ошибкой
+                getWeather(lat, lon, cnt, units, appid);
+            }
         }
 
         //Останавливаем обновление LocationServices
@@ -310,4 +397,5 @@ public class WeatherFragment extends FragmentLocation {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
         }
     }
+
 }

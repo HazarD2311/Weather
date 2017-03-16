@@ -1,41 +1,73 @@
 package ru.surfproject.app.weather.models;
 
-import android.util.MonthDisplayHelper;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
 /**
  * Created by pkorl on 04.12.2016.
  */
-
+@DatabaseTable(tableName = Weather.TABLE_NAME_WEATHER)
 public class Weather {
+    public static final String TABLE_NAME_WEATHER = "weather_table";
+
+    public static final String FIELD_NAME_ID = "id";
+    public static final String IMAGE = "image";
+    public static final String DAY = "day";
+    public static final String TYPE_WEATHER = "type_weather";
+    public static final String TEMPERATURE_DAY = "temperature_day";
+    public static final String TEMPERATURE_NIGHT = "temperature_night";
+    public static final String HUMIDITY = "humidity";
+    public static final String PRESSURE = "pressure";
+    public static final String WIND_SPEED = "wind_speed";
+    public static final String WIND_DIRECTION = "wind_direction";
+    public static final String TIME = "time";
+
+
+
+
+    @DatabaseField(columnName = FIELD_NAME_ID, generatedId = true)
+    private int id;
+
+    @DatabaseField(columnName = IMAGE)
     private int image;
+
+    @DatabaseField(columnName = DAY)
     private String day;
+
+    @DatabaseField(columnName = TYPE_WEATHER)
     private String typeWeather;
+
+    @DatabaseField(columnName = TEMPERATURE_DAY)
     private String temperatureDay;
+
+    @DatabaseField(columnName = TEMPERATURE_NIGHT)
     private String temperatureNight;
+
+    @DatabaseField(columnName = HUMIDITY)
     private String humidity;
+
+    @DatabaseField(columnName = PRESSURE)
     private String pressure;
+
+    @DatabaseField(columnName = WIND_SPEED)
     private String windSpeed;
-    private String windDirection;
+
+    @DatabaseField(columnName = WIND_DIRECTION)
+    private String direction;
+
+    @DatabaseField(columnName = TIME)
+    private String time;
 
     public Weather() {
 
     }
 
-    public Weather(int image, String day, String typeWeather, String temperatureDay, String temperatureNight, String humidity, String pressure, String windSpeed, String windDirection) {
-        this.image = image;
-        this.day = day;
-        this.typeWeather = typeWeather;
-        this.temperatureDay = temperatureDay;
-        this.temperatureNight = temperatureNight;
-        this.humidity = humidity;
-        this.pressure = pressure;
-        this.windSpeed = windSpeed;
-        this.windDirection = windDirection;
+    public int getId() {
+        return id;
+    }
+
+    public String getTime() {
+        return time;
     }
 
     public int getImage() {
@@ -71,7 +103,46 @@ public class Weather {
     }
 
     public String getWindDirection() {
-        return "Направление ветра: " + windDirection+"°";
+        return "Направление ветра: " + direction+"°";
     }
 
+    public void setImage(int image) {
+        this.image = image;
+    }
+
+    public void setDay(String day) {
+        this.day = day;
+    }
+
+    public void setTypeWeather(String typeWeather) {
+        this.typeWeather = typeWeather;
+    }
+
+    public void setTemperatureDay(String temperatureDay) {
+        this.temperatureDay = temperatureDay;
+    }
+
+    public void setTemperatureNight(String temperatureNight) {
+        this.temperatureNight = temperatureNight;
+    }
+
+    public void setHumidity(String humidity) {
+        this.humidity = humidity;
+    }
+
+    public void setPressure(String pressure) {
+        this.pressure = pressure;
+    }
+
+    public void setWindSpeed(String windSpeed) {
+        this.windSpeed = windSpeed;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
 }

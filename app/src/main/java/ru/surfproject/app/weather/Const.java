@@ -14,4 +14,7 @@ public class Const {
 
     public static final String BASE_URL = "http://api.openweathermap.org/";
     public static final String KEY_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
+
+    // Значения для bundle
+    public static final String BUNDLE_WEATHER = "listWeather";
 }

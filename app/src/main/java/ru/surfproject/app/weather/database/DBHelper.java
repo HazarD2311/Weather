@@ -1,13 +1,13 @@
 package ru.surfproject.app.weather.database;
 
 import android.content.Context;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+
+import java.sql.SQLException;
 
 import ru.surfproject.app.weather.models.Weather;
 
@@ -17,10 +17,10 @@ import ru.surfproject.app.weather.models.Weather;
 
 public class DBHelper extends OrmLiteSqliteOpenHelper {
 
-    private static final String DATABASE_NAME    = "WeatherApp";
-    private static final int DATABASE_VERSION = 1;
+    private WeatherDao weatherDao = null;
 
-    private Dao<Weather, Integer> weatherDao = null;
+    private static final String DATABASE_NAME = "WeatherApp";
+    private static final int DATABASE_VERSION = 1;
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -32,42 +32,29 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Weather.class);
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource,
-                          int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVersion, int newVersion) {
         try {
             TableUtils.dropTable(connectionSource, Weather.class, true);
             onCreate(db, connectionSource);
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
         }
     }
 
-    /* User */
-
-    public Dao<Weather, Integer> getWeatherDao() throws SQLException {
+    public WeatherDao getWeatherDao() throws SQLException {
         if (weatherDao == null) {
-            try {
-                weatherDao = getDao(Weather.class);
-            } catch (java.sql.SQLException e) {
-                e.printStackTrace();
-            }
+            weatherDao = new WeatherDao(getConnectionSource(), Weather.class); // Получаем WeatherDao
         }
-
         return weatherDao;
     }
 
     @Override
     public void close() {
         weatherDao = null;
-
         super.close();
     }
 }

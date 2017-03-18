@@ -3,11 +3,15 @@ package ru.surfproject.app.weather.models;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.io.Serializable;
+
+import ru.surfproject.app.weather.database.WeatherDao;
+
 /**
  * Created by pkorl on 04.12.2016.
  */
-@DatabaseTable(tableName = Weather.TABLE_NAME_WEATHER)
-public class Weather {
+@DatabaseTable(tableName = Weather.TABLE_NAME_WEATHER, daoClass = WeatherDao.class)
+public class Weather implements Serializable {
     public static final String TABLE_NAME_WEATHER = "weather_table";
 
     public static final String FIELD_NAME_ID = "id";

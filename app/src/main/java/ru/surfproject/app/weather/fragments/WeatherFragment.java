@@ -5,13 +5,14 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.SQLException;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,8 +29,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationServices;
-import com.j256.ormlite.dao.Dao;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,7 +47,8 @@ import ru.surfproject.app.weather.RetrofitInit;
 import ru.surfproject.app.weather.Utilities;
 import ru.surfproject.app.weather.adapters.WeatherAdapter;
 import ru.surfproject.app.weather.R;
-import ru.surfproject.app.weather.database.DBHelper;
+import ru.surfproject.app.weather.database.GetWeatherDBLoader;
+import ru.surfproject.app.weather.database.SetWeatherDBLoader;
 import ru.surfproject.app.weather.models.Weather;
 import ru.surfproject.app.weather.models.response.WeatherWeek;
 
@@ -156,32 +158,16 @@ public class WeatherFragment extends FragmentLocation {
             weather.setWindSpeed(String.valueOf(listWeather.get(i).speed));
             weather.setDirection(String.valueOf(listWeather.get(i).deg));
             weather.setTime(Utilities.getDatetimeNow());
-
-
-            // Добавление в БД
-            DBHelper helper = new DBHelper(getContext());
-            Dao<Weather, Integer> weatherDao = null;
-            try {
-                weatherDao = helper.getWeatherDao();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (weatherDao != null) {
-                    weatherDao.createOrUpdate(weather); // Апдейтим или создаём
-                    Log.d("DATABASE", "Погодо успешно добавлена в БД");
-                } else {
-                    Log.d("DATABASE", "weatherDao == null");
-                }
-            } catch (SQLException | java.sql.SQLException e) {
-                e.printStackTrace();
-                Log.d("DATABASE", "Ошибка:" + e.getMessage());
-            }
-
         }
+        // Запускаем лоудер, который записывает данные в БД
+        getActivity().getSupportLoaderManager().restartLoader(0, args(weatherArr), setWeatherDBLoaderCallbacks);
         return weatherArr;
     }
-
+    public static Bundle args(List<Weather> listWeather) {
+        Bundle args = new Bundle();
+        args.putSerializable(Const.BUNDLE_WEATHER, (Serializable) listWeather);
+        return args;
+    }
 
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
         if (lat == null || lon == null) {
@@ -247,15 +233,8 @@ public class WeatherFragment extends FragmentLocation {
                     getPermissionLocation();
                     break;
                 case 1:
-                    List<Weather> weather = weatherFromBD();
-                    if (weather.size() != 0) {
-                        setupRecyclerExistWeather(viewRoot, weather); // Заполнение recyclerViewWeather
-                        progressBar.setVisibility(View.GONE);
-                        placeHolderNetwork.setVisibility(View.GONE);
-                    } else {
-                        // Сетевой запрос на получение погоды завершился с ошибкой
-                        getWeather(lat, lon, cnt, units, appid);
-                    }
+                    // Запускаем лоадер, который получает данные из БД
+                    getActivity().getSupportLoaderManager().restartLoader(0, null, getWeatherDBLoaderCallbacks);
                     break;
                 case 2:
                     // Не включена геолокация
@@ -271,24 +250,6 @@ public class WeatherFragment extends FragmentLocation {
         if (callWeather != null) {
             callWeather.cancel(); // Отменяем запрос, если фрагмент не в фокусе пользователя
         }
-    }
-
-    private List<Weather> weatherFromBD() {
-        DBHelper helper = new DBHelper(getContext());
-        Dao<Weather, Integer> weatherDao = null;
-        try {
-            weatherDao = helper.getWeatherDao();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (weatherDao != null) {
-                return weatherDao.queryForAll();
-            }
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     // Метод получает инфу о том, предоставил ли пользователь резрешение ACCESS_FINE_LOCATION
@@ -381,21 +342,59 @@ public class WeatherFragment extends FragmentLocation {
 
         // Как только получили координаты пользователя, выполняем сетевой запрос
         if (countTest == 1) {
-            List<Weather> weather = weatherFromBD();
-            if (weather.size() != 0) {
-                setupRecyclerExistWeather(viewRoot, weather); // Заполнение recyclerViewWeather
-                progressBar.setVisibility(View.GONE);
-                placeHolderNetwork.setVisibility(View.GONE);
-            } else {
-                // Сетевой запрос на получение погоды завершился с ошибкой
-                getWeather(lat, lon, cnt, units, appid);
-            }
+            // Запускаем лоадер
+            getActivity().getSupportLoaderManager().restartLoader(0, null, getWeatherDBLoaderCallbacks);
         }
 
         //Останавливаем обновление LocationServices
         if (googleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
         }
+
+
     }
 
+    // Коллбек лоудера setWeatherDBLoaderCallbacks, тут получаем данные погоды
+    private LoaderManager.LoaderCallbacks<List<Weather>> getWeatherDBLoaderCallbacks = new LoaderManager.LoaderCallbacks<List<Weather>>() {
+        @Override
+        public Loader<List<Weather>> onCreateLoader(int id, Bundle args) {
+            return new GetWeatherDBLoader(getActivity());
+        }
+
+        @Override
+        public void onLoadFinished(Loader<List<Weather>> loader, List<Weather> weather) {
+            //показываем полученные данные
+            if (weather.size() != 0) {
+                setupRecyclerExistWeather(viewRoot, weather); // Заполнение recyclerViewWeather
+                progressBar.setVisibility(View.GONE);
+                placeHolderNetwork.setVisibility(View.GONE);
+            } else {
+                // Если в БД нет данных, запускаем сетевой запрос
+                getWeather(lat, lon, cnt, units, appid);
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<List<Weather>> loader) {
+            //Loader перезапущен, очищаются все данные, unregister any listeners, etc.
+        }
+    };
+    // Коллбек лоудера setWeatherDBLoaderCallbacks, тут приходит инфа о кол-ве записанных данных
+    private LoaderManager.LoaderCallbacks<Integer> setWeatherDBLoaderCallbacks = new LoaderManager.LoaderCallbacks<Integer>() {
+        @Override
+        public Loader<Integer> onCreateLoader(int id, Bundle args) {
+            return new SetWeatherDBLoader(getActivity(), args);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Integer> loader, Integer cout) {
+            //показываем полученные данные
+            Log.d("DATABASE", "Кол-во записей добавленых(обновленных) в БД: "+ cout);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Integer> loader) {
+            //Loader перезапущен, очищаются все данные, unregister any listeners, etc.
+        }
+    };
 }

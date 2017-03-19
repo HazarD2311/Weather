@@ -3,20 +3,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <EditText
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableLeft="@drawable/ic_menu_search"
-        android:drawablePadding="3dp"
-        android:inputType="text"
-        android:lines="1"
-        android:imeOptions="actionSearch"
-        android:id="@+id/edt_search_city"
-        android:hint="Населенный пункт" />
+        android:orientation="horizontal">
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_menu_search"
+            android:drawablePadding="3dp"
+            android:inputType="text"
+            android:lines="1"
+            android:imeOptions="actionDone"
+            android:id="@+id/edt_search_city"
+            android:hint="Населенный пункт" />
+
+        <ProgressBar
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/progress_city"
+            android:visibility="gone"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+    </RelativeLayout>
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/recycler_cities">
-
     </android.support.v7.widget.RecyclerView>
 </LinearLayout>

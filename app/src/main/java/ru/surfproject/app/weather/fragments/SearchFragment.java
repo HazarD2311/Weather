@@ -13,10 +13,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,6 +39,8 @@ public class SearchFragment extends Fragment {
     private RetrofitInit retrofitInit2;
     private List<String> listCitys = new ArrayList<>();
     private RecyclerView recyclerCities;
+    private ListCitiesAdapter listCitiesAdapter;
+    private ProgressBar progressCity;
 
     @Nullable
     @Override
@@ -43,6 +48,9 @@ public class SearchFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
         retrofitInit2 = new RetrofitInit();
         retrofitInit2.initRetrofit2();
+
+        progressCity = (ProgressBar) view.findViewById(R.id.progress_city);
+
         recyclerCities = (RecyclerView) view.findViewById(R.id.recycler_cities);
         recyclerCities.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCities.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
@@ -50,17 +58,39 @@ public class SearchFragment extends Fragment {
 
         searchCity = (EditText) view.findViewById(R.id.edt_search_city);
         searchCity.addTextChangedListener(new TextWatcher() {
+            private Timer timer=new Timer();
+            private final long DELAY = 500; // Задержка в миллисекундах
+
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                getCityByName(s.toString());
-                if (count == 0) {
-                    searchCity.setText("");
-                }
+            public void onTextChanged(final CharSequence s, int start, int before, final int count) {
+                progressCity.setVisibility(View.GONE);
+                timer.cancel();
+                timer = new Timer();
+                timer.schedule(
+                        new TimerTask() {
+                            @Override
+                            public void run() {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        getCityByName(s.toString());
+                                        if (count == 0) {
+                                            listCitys.clear();
+                                            if (listCitiesAdapter != null) {
+                                                listCitiesAdapter.notifyDataSetChanged();
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        },
+                        DELAY
+                );
             }
 
             @Override
@@ -72,6 +102,7 @@ public class SearchFragment extends Fragment {
     }
 
     private void getCityByName(String text) {
+        progressCity.setVisibility(View.VISIBLE);
         Call<City> call = retrofitInit2.service.getCity(text, "(cities)", getString(R.string.google_maps_key));
         call.enqueue(new Callback<City>() {
             @Override
@@ -84,14 +115,15 @@ public class SearchFragment extends Fragment {
                 } else {
 
                 }
-               // Log.d("12","asdas");
-                ListCitiesAdapter listCitiesAdapter = new ListCitiesAdapter(cityClick, listCitys);
+                progressCity.setVisibility(View.GONE);
+                listCitiesAdapter = new ListCitiesAdapter(cityClick, listCitys);
                 recyclerCities.setAdapter(listCitiesAdapter);
             }
 
             @Override
             public void onFailure(Call<City> call, Throwable t) {
                 Toast.makeText(getActivity(), ""+t.getMessage(), Toast.LENGTH_SHORT).show();
+                progressCity.setVisibility(View.GONE);
             }
         });
     }

@@ -4,6 +4,7 @@ package ru.surfproject.app.weather.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -75,23 +76,26 @@ public class WeatherFragment extends FragmentLocation {
     private RetrofitInit retrofitInit;
     private Toolbar toolbarCollapsing;
     private SwipeRefreshLayout refreshWeather;
+    private SharedPreferences sharedPreferenceDate;
+
+    public static Bundle args(List<Weather> listWeather) {
+        Bundle args = new Bundle();
+        args.putSerializable(Const.BUNDLE_WEATHER, (Serializable) listWeather);
+        return args;
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewRoot = inflater.inflate(R.layout.fragment_weather, container, false);
-
+        sharedPreferenceDate = getActivity().getSharedPreferences(Const.PREFS_SHARED_DATE, Activity.MODE_PRIVATE);
         toolbarCollapsing = (Toolbar) viewRoot.findViewById(R.id.toolbar_collapsing);
         ((MainActivity) getActivity()).setSupportActionBar(toolbarCollapsing);
-        //DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        // ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        // drawer.addDrawerListener(toggle);
-        // toggle.syncState();
         refreshWeather = (SwipeRefreshLayout) viewRoot.findViewById(R.id.refresh_weather);
         refreshWeather.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                getWeather(lat, lon, cnt, units, appid);
+                getWeatherCoord(lat, lon, cnt, units, appid);
             }
         });
 
@@ -157,19 +161,78 @@ public class WeatherFragment extends FragmentLocation {
             weather.setPressure(String.valueOf(listWeather.get(i).pressure));
             weather.setWindSpeed(String.valueOf(listWeather.get(i).speed));
             weather.setDirection(String.valueOf(listWeather.get(i).deg));
-            weather.setTime(Utilities.getDatetimeNow());
+            saveDateNow(Utilities.getDatetimeNow()); // Сохраняем данный момент времени в sharedPreference
         }
         // Запускаем лоудер, который записывает данные в БД
         getActivity().getSupportLoaderManager().restartLoader(0, args(weatherArr), setWeatherDBLoaderCallbacks);
         return weatherArr;
     }
-    public static Bundle args(List<Weather> listWeather) {
-        Bundle args = new Bundle();
-        args.putSerializable(Const.BUNDLE_WEATHER, (Serializable) listWeather);
-        return args;
+
+    private void saveDateNow(String dateNow) {
+        SharedPreferences.Editor edit = sharedPreferenceDate.edit();
+        edit.putString(Const.DATA_NOW, dateNow);
+        edit.apply();
     }
 
-    private void getWeather(String lat, String lon, String cnt, String units, String appid) {
+    private String getDateFromShared() {
+        SharedPreferences mySharedPreferences = getActivity().getSharedPreferences(Const.PREFS_SHARED_DATE, Activity.MODE_PRIVATE);
+        return mySharedPreferences.getString(Const.DATA_NOW,"");
+    }
+
+    private void getWeatherCoord(String lat, String lon, String cnt, String units, String appid) {
+        if (lat == null || lon == null) {
+            progressBar.setVisibility(View.GONE);
+            placeHolderNetwork.setVisibility(View.VISIBLE);
+            Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
+        } else {
+            //отправляем запрос
+            callWeather = retrofitInit.service.getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
+            callWeather.enqueue(new Callback<WeatherWeek>() {
+                @Override
+                public void onResponse(Call<WeatherWeek> call, Response<WeatherWeek> response) {
+                    progressBar.setVisibility(View.GONE);
+                    if (response.isSuccessful()) {
+                        if (response.body().city.name == null || response.body().list == null) {
+                            ERROR_CODE = 1;
+                            if (refreshWeather.isRefreshing()) {
+                                refreshWeather.setRefreshing(false);
+                            } else {
+                                errorMessageTextView.setText("Мы получили данные, но они с ошибкой");
+                                btnRepeatCommand.setText("Повторить");
+                                progressBar.setVisibility(View.GONE);
+                                placeHolderNetwork.setVisibility(View.VISIBLE);
+                            }
+                            Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            toolbarCollapsing.setTitle(response.body().city.name); // Устанавливаем имя города в титл город
+                            setupRecycler(viewRoot, response.body().list); // Заполнение recyclerViewWeather
+                        }
+                    }
+                    progressBar.setVisibility(View.GONE);
+                    placeHolderNetwork.setVisibility(View.GONE);
+                    if (refreshWeather.isRefreshing()) {
+                        refreshWeather.setRefreshing(false);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<WeatherWeek> call, Throwable t) {
+                    ERROR_CODE = 1;
+                    if (refreshWeather.isRefreshing()) {
+                        refreshWeather.setRefreshing(false);
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        placeHolderNetwork.setVisibility(View.VISIBLE);
+                        errorMessageTextView.setText("Сетевой запрос выполнился с ошибкой");
+                        btnRepeatCommand.setText("Повторить");
+                    }
+                    Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    private void getWeatherNameCity(String name, String cnt, String units, String appid) {
         if (lat == null || lon == null) {
             progressBar.setVisibility(View.GONE);
             placeHolderNetwork.setVisibility(View.VISIBLE);
@@ -274,7 +337,6 @@ public class WeatherFragment extends FragmentLocation {
                     btnRepeatCommand.setText("Предоставить");
                     Toast.makeText(getActivity(), "Разрешения не предоставлены!", Toast.LENGTH_LONG).show();
                 }
-                return;
             }
             // Тут можно добавить еще пермишены.
         }
@@ -326,6 +388,13 @@ public class WeatherFragment extends FragmentLocation {
                 btnRepeatCommand.setText("Включить");
             }
         }
+
+        if (requestCode == Const.REQUEST_CODE_NEW_CITY) {
+            if (resultCode == Activity.RESULT_OK) {
+                String nameCity = data.getStringExtra("name_city");
+                getWeatherNameCity(nameCity, cnt, units, appid);
+            }
+        }
     }
 
     @Override
@@ -364,13 +433,16 @@ public class WeatherFragment extends FragmentLocation {
         @Override
         public void onLoadFinished(Loader<List<Weather>> loader, List<Weather> weather) {
             //показываем полученные данные
-            if (weather.size() != 0) {
+            String dataNow = Utilities.getDatetimeNow();
+            String dataShared = getDateFromShared();
+            boolean isNecessaryUpdateWeather = Utilities.isNecessaryUpdateWeather(dataNow, dataShared);
+            if (isNecessaryUpdateWeather) {
+                // Необходимо обновить данные, так как прошло больше 2-х часов
+                getWeatherCoord(lat, lon, cnt, units, appid);
+            } else {
                 setupRecyclerExistWeather(viewRoot, weather); // Заполнение recyclerViewWeather
                 progressBar.setVisibility(View.GONE);
                 placeHolderNetwork.setVisibility(View.GONE);
-            } else {
-                // Если в БД нет данных, запускаем сетевой запрос
-                getWeather(lat, lon, cnt, units, appid);
             }
         }
 

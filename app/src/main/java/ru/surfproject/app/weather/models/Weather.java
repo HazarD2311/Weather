@@ -24,7 +24,6 @@ public class Weather implements Serializable {
     public static final String PRESSURE = "pressure";
     public static final String WIND_SPEED = "wind_speed";
     public static final String WIND_DIRECTION = "wind_direction";
-    public static final String TIME = "time";
 
 
 
@@ -59,8 +58,6 @@ public class Weather implements Serializable {
     @DatabaseField(columnName = WIND_DIRECTION)
     private String direction;
 
-    @DatabaseField(columnName = TIME)
-    private String time;
 
     public Weather() {
 
@@ -68,10 +65,6 @@ public class Weather implements Serializable {
 
     public int getId() {
         return id;
-    }
-
-    public String getTime() {
-        return time;
     }
 
     public int getImage() {
@@ -146,7 +139,4 @@ public class Weather implements Serializable {
         this.direction = direction;
     }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
 }

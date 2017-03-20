@@ -1,5 +1,7 @@
 package ru.surfproject.app.weather.fragments;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -8,7 +10,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import java.util.TimerTask;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.RetrofitInit;
 import ru.surfproject.app.weather.adapters.ListCitiesAdapter;
@@ -36,7 +38,7 @@ import ru.surfproject.app.weather.models.response.city.City;
 public class SearchFragment extends Fragment {
 
     private EditText searchCity;
-    private RetrofitInit retrofitInit2;
+    private RetrofitInit retrofitInitGoogle;
     private List<String> listCitys = new ArrayList<>();
     private RecyclerView recyclerCities;
     private ListCitiesAdapter listCitiesAdapter;
@@ -46,11 +48,9 @@ public class SearchFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
-        retrofitInit2 = new RetrofitInit();
-        retrofitInit2.initRetrofit2();
-
+        retrofitInitGoogle = new RetrofitInit();
+        retrofitInitGoogle.initRetrofit2();
         progressCity = (ProgressBar) view.findViewById(R.id.progress_city);
-
         recyclerCities = (RecyclerView) view.findViewById(R.id.recycler_cities);
         recyclerCities.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCities.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
@@ -103,7 +103,7 @@ public class SearchFragment extends Fragment {
 
     private void getCityByName(String text) {
         progressCity.setVisibility(View.VISIBLE);
-        Call<City> call = retrofitInit2.service.getCity(text, "(cities)", getString(R.string.google_maps_key));
+        Call<City> call = retrofitInitGoogle.service.getCity(text, "(cities)", getString(R.string.google_maps_key));
         call.enqueue(new Callback<City>() {
             @Override
             public void onResponse(Call<City> call, Response<City> response) {

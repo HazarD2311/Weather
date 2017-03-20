@@ -18,4 +18,12 @@ public class Const {
 
     // Значения для bundle
     public static final String BUNDLE_WEATHER = "listWeather";
+
+    // SharedPreference
+    public static final String PREFS_SHARED_DATE = "prefs_shared_date";
+    public static final String DATA_NOW = "dataNow";
+    public static final long TIME_FOR_UPDATE = 7200000;
+
+    // onActivityResult
+    public static final int REQUEST_CODE_NEW_CITY = 1;
 }

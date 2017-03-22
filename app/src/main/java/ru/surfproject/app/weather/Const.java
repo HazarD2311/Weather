@@ -26,4 +26,9 @@ public class Const {
 
     // onActivityResult
     public static final int REQUEST_CODE_NEW_CITY = 1;
+
+    // Настройка погоды
+    public static final String CNT = "10";
+    public static final String UTILS = "metric";
+    public static final String LANG = "ru";
 }

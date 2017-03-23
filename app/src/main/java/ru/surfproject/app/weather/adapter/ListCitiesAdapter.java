@@ -11,10 +11,6 @@ import java.util.List;
 
 import ru.surfproject.app.weather.R;
 
-/**
- * Created by pkorl on 19.03.2017.
- */
-
 public class ListCitiesAdapter extends RecyclerView.Adapter<ListCitiesAdapter.ViewHolder> {
 
     private CityOnItemClickListener cityOnItemClickListener;

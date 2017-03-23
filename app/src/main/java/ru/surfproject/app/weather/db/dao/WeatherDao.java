@@ -1,4 +1,4 @@
-package ru.surfproject.app.weather.db;
+package ru.surfproject.app.weather.db.dao;
 
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.support.ConnectionSource;
@@ -9,13 +9,9 @@ import java.util.List;
 
 import ru.surfproject.app.weather.model.Weather;
 
-/**
- * Created by pkorl on 18.03.2017.
- */
-
 public class WeatherDao extends BaseDaoImpl<Weather, Integer> {
 
-    protected WeatherDao(ConnectionSource connectionSource, Class<Weather> weatherClass) throws SQLException {
+    public WeatherDao(ConnectionSource connectionSource, Class<Weather> weatherClass) throws SQLException {
         super(connectionSource, weatherClass);
     }
 

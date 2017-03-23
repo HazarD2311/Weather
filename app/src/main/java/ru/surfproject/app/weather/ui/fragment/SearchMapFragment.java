@@ -34,10 +34,6 @@ import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.model.response.WeatherWeek;
 
-/**
- * Created by pkorl on 27.11.2016.
- */
-
 public class SearchMapFragment extends FragmentLocation implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
 
     private GoogleMap map;

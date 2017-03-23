@@ -1,9 +1,5 @@
 package ru.surfproject.app.weather.model;
 
-/**
- * Created by ПК on 12/5/2016.
- */
-
 public class Favourite {
     private String city; //название города
 

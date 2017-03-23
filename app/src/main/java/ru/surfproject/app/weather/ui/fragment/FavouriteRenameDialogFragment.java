@@ -13,8 +13,8 @@ import android.widget.Toast;
 
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapter.FavouritesAdapter;
+
 /**
- * Created by ПК on 12/25/2016.
  * Диалоговое окно для переименования избранного места
  */
 

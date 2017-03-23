@@ -12,10 +12,6 @@ import java.util.List;
 import ru.surfproject.app.weather.model.Favourite;
 import ru.surfproject.app.weather.R;
 
-/**
- * Created by ПК on 12/5/2016.
- */
-
 public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.ViewHolder> {
 
     private OnItemClickListener onItemClickListener;

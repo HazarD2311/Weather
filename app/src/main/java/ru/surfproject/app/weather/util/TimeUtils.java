@@ -10,10 +10,6 @@ import java.util.Date;
 
 import ru.surfproject.app.weather.Const;
 
-/**
- * Created by pkorl on 16.03.2017.
- */
-
 public class TimeUtils {
     public static String getDatetimeNow() {
         Calendar c = Calendar.getInstance();

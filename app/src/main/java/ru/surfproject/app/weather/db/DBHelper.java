@@ -9,15 +9,12 @@ import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
 
+import ru.surfproject.app.weather.db.dao.WeatherDao;
 import ru.surfproject.app.weather.model.Weather;
-
-/**
- * Created by pkorl on 16.03.2017.
- */
 
 public class DBHelper extends OrmLiteSqliteOpenHelper {
 
-    private WeatherDao weatherDao = null;
+    protected WeatherDao weatherDao = null;
 
     private static final String DATABASE_NAME = "WeatherApp";
     private static final int DATABASE_VERSION = 1;

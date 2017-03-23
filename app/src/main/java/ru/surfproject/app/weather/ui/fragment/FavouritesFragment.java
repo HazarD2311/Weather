@@ -26,10 +26,6 @@ import ru.surfproject.app.weather.adapter.FavouritesAdapter;
 import ru.surfproject.app.weather.model.Favourite;
 import ru.surfproject.app.weather.R;
 
-/**
- * Created by pkorl on 03.12.2016.
- */
-
 public class FavouritesFragment extends Fragment {
 
     private RecyclerView recyclerViewFavourites;

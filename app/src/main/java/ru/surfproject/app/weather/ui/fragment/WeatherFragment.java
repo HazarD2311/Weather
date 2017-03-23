@@ -43,18 +43,15 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.Const;
+import ru.surfproject.app.weather.SharedPref;
 import ru.surfproject.app.weather.ui.activity.MainActivity;
 import ru.surfproject.app.weather.util.TimeUtils;
 import ru.surfproject.app.weather.adapter.WeatherAdapter;
 import ru.surfproject.app.weather.R;
-import ru.surfproject.app.weather.db.GetWeatherDBLoader;
-import ru.surfproject.app.weather.db.SetWeatherDBLoader;
+import ru.surfproject.app.weather.db.loader.GetWeatherDBLoader;
+import ru.surfproject.app.weather.db.loader.SetWeatherDBLoader;
 import ru.surfproject.app.weather.model.Weather;
 import ru.surfproject.app.weather.model.response.WeatherWeek;
-
-/**
- * Created by pkorl on 03.12.2016.
- */
 
 public class WeatherFragment extends FragmentLocation {
 
@@ -76,7 +73,6 @@ public class WeatherFragment extends FragmentLocation {
     private int countTest = 0;
     private Toolbar toolbarCollapsing;
     private SwipeRefreshLayout refreshWeather;
-    private SharedPreferences sharedPreferenceDate;
     private ErrorCode errorCode;
     private WeatherAdapter mainRecyclerAdapter;
     private List<Weather> myWeather = new ArrayList<>();
@@ -92,7 +88,6 @@ public class WeatherFragment extends FragmentLocation {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewRoot = inflater.inflate(R.layout.fragment_weather, container, false);
         initRecyclerView(); // Инициализация RecyclerView
-        sharedPreferenceDate = getActivity().getSharedPreferences(Const.PREFS_SHARED_DATE, Activity.MODE_PRIVATE);
         toolbarCollapsing = (Toolbar) viewRoot.findViewById(R.id.toolbar_collapsing);
         ((MainActivity) getActivity()).setSupportActionBar(toolbarCollapsing);
         refreshWeather = (SwipeRefreshLayout) viewRoot.findViewById(R.id.refresh_weather);
@@ -152,14 +147,13 @@ public class WeatherFragment extends FragmentLocation {
     }
 
     private void saveDateNow(String dateNow) {
-        SharedPreferences.Editor edit = sharedPreferenceDate.edit();
+        SharedPreferences.Editor edit = SharedPref.getSharedPreferences().edit();
         edit.putString(Const.DATA_NOW, dateNow);
         edit.apply();
     }
 
     private String getDateFromShared() {
-        SharedPreferences mySharedPreferences = getActivity().getSharedPreferences(Const.PREFS_SHARED_DATE, Activity.MODE_PRIVATE);
-        return mySharedPreferences.getString(Const.DATA_NOW,"");
+        return SharedPref.getSharedPreferences().getString(Const.DATA_NOW,"");
     }
 
     private void getWeatherCoord(String lat, String lon, String cnt, String units, String lang, String appid) {

@@ -1,12 +1,12 @@
 package ru.surfproject.app.weather.adapter;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,18 +17,18 @@ import java.util.List;
 import ru.surfproject.app.weather.model.Weather;
 import ru.surfproject.app.weather.R;
 
-/**
- * Created by pkorl on 04.12.2016.
- */
-
 public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHolder> {
 
     private List<Weather> weatherList = new ArrayList<>();
     private Context context;
+    Animation animationFadeIn;
+    Animation animationFadeOut;
 
     public WeatherAdapter(List<Weather> itemsRecyclerAdapterList, Context context) {
         this.weatherList = itemsRecyclerAdapterList;
         this.context = context;
+        animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
+        animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
     }
 
     @Override
@@ -54,28 +54,11 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
             @Override
             public void onClick(View view) {
                 if (holder.linerLayoutAdditionallyInfo.getVisibility() == View.GONE) {
-                    holder.linerLayoutAdditionallyInfo.animate()
-                            .translationXBy(-holder.linerLayoutAdditionallyInfo.getWidth())
-                            .translationX(0)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationStart(Animator animation) {
-                                    super.onAnimationStart(animation);
-                                    holder.linerLayoutAdditionallyInfo.setVisibility(View.VISIBLE);
-
-                                }
-                            });
+                    holder.linerLayoutAdditionallyInfo.setVisibility(View.VISIBLE);
+                    holder.linerLayoutAdditionallyInfo.startAnimation(animationFadeIn);
                 } else {
-                    holder.linerLayoutAdditionallyInfo.animate()
-                            .translationXBy(0)
-                            .translationX(-holder.linerLayoutAdditionallyInfo.getWidth())
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    super.onAnimationEnd(animation);
-                                    holder.linerLayoutAdditionallyInfo.setVisibility(View.GONE);
-                                }
-                            });
+                    holder.linerLayoutAdditionallyInfo.startAnimation(animationFadeOut);
+                    holder.linerLayoutAdditionallyInfo.setVisibility(View.GONE);
                 }
             }
         });

@@ -1,4 +1,4 @@
-package ru.surfproject.app.weather.db;
+package ru.surfproject.app.weather.db.loader;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -10,11 +10,9 @@ import java.util.List;
 
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.App;
+import ru.surfproject.app.weather.db.DBHelper;
+import ru.surfproject.app.weather.db.dao.WeatherDao;
 import ru.surfproject.app.weather.model.Weather;
-
-/**
- * Created by pkorl on 18.03.2017.
- */
 
 public class SetWeatherDBLoader extends AsyncTaskLoader<Integer> {
 

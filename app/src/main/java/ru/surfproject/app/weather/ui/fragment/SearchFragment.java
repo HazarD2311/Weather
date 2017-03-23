@@ -28,10 +28,6 @@ import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapter.ListCitiesAdapter;
 import ru.surfproject.app.weather.model.response.city.City;
 
-/**
- * Created by pkorl on 27.11.2016.
- */
-
 public class SearchFragment extends Fragment {
 
     private EditText searchCity;

@@ -14,10 +14,6 @@ import ru.surfproject.app.weather.api.APIServiceGoogle;
 import ru.surfproject.app.weather.api.APIServiceWeather;
 import ru.surfproject.app.weather.db.DBHelper;
 
-/**
- * Created by devel on 01.03.2017.
- */
-
 public class App extends Application {
 
     private static Retrofit retrofitOpenWeather;
@@ -78,6 +74,7 @@ public class App extends Application {
         super.onCreate();
         helper = new DBHelper(getApplicationContext());
         initRetrofit();
+        SharedPref.initialize(getApplicationContext());
     }
 
     @Override

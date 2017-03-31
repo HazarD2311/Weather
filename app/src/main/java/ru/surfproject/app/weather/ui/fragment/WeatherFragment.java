@@ -70,7 +70,6 @@ public class WeatherFragment extends FragmentLocation {
     private String lat;
     private String lon;
     private Call<WeatherWeek> callWeather;
-    private int countTest = 0;
     private Toolbar toolbarCollapsing;
     private SwipeRefreshLayout refreshWeather;
     private ErrorCode errorCode;
@@ -91,6 +90,7 @@ public class WeatherFragment extends FragmentLocation {
         toolbarCollapsing = (Toolbar) viewRoot.findViewById(R.id.toolbar_collapsing);
         ((MainActivity) getActivity()).setSupportActionBar(toolbarCollapsing);
         refreshWeather = (SwipeRefreshLayout) viewRoot.findViewById(R.id.refresh_weather);
+        refreshWeather.setEnabled(false);
         refreshWeather.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -181,6 +181,7 @@ public class WeatherFragment extends FragmentLocation {
                             }
                             Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
                         } else {
+                            refreshWeather.setEnabled(true);
                             toolbarCollapsing.setTitle(response.body().city.name); // Устанавливаем имя города в титл город
                             setupWeather(response.body().list); // Заполнение myWeather
                             mainRecyclerAdapter.updateWeatherList(myWeather);
@@ -301,7 +302,7 @@ public class WeatherFragment extends FragmentLocation {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1000) {
+        if (requestCode == Const.REQUEST_CODE_PERMISSION) {
             if (resultCode == Activity.RESULT_OK) {
                 // Пользователь включил геолокацию
             }
@@ -318,21 +319,14 @@ public class WeatherFragment extends FragmentLocation {
 
     @Override
     public void onLocationChanged(Location location) {
-        //TODO почему-то постоянно(бесконечно) выполняется этот метод, после того, как мы предоставили доступ к геопозиции устройства приложению,
-        //TODO при последующих запусках такого не происходит.
-        //TODO Пока стоит костыль
-        countTest++;
-
         lastLocation = location;
         //Как только получили координаты, показываем погоду, скрываем прогрессбар
         lat = String.valueOf(location.getLatitude());
         lon = String.valueOf(location.getLongitude());
 
         // Как только получили координаты пользователя, выполняем сетевой запрос
-        if (countTest == 1) {
-            // Запускаем лоадер
-            getActivity().getSupportLoaderManager().restartLoader(0, null, getWeatherDBLoaderCallbacks);
-        }
+        // Запускаем лоадер
+        getActivity().getSupportLoaderManager().restartLoader(0, null, getWeatherDBLoaderCallbacks);
 
         //Останавливаем обновление LocationServices
         if (googleApiClient != null) {
@@ -361,6 +355,7 @@ public class WeatherFragment extends FragmentLocation {
                 // Необходимо обновить данные, так как прошло больше 2-х часов
                 getWeatherCoord(lat, lon, Const.CNT, Const.UTILS, Const.LANG, Const.WEATHER_API);
             } else {
+                refreshWeather.setEnabled(true);
                 mainRecyclerAdapter.updateWeatherList(weather);
                 progressBar.setVisibility(View.GONE);
                 placeHolderNetwork.setVisibility(View.GONE);

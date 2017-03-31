@@ -27,4 +27,7 @@ public class Const {
     public static final String CNT = "10";
     public static final String UTILS = "metric";
     public static final String LANG = "ru";
+
+    //RequestCodes
+    public static final int REQUEST_CODE_PERMISSION = 1000;
 }

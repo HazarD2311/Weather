@@ -44,8 +44,6 @@ public class FragmentLocation extends Fragment implements GoogleApiClient.Connec
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);

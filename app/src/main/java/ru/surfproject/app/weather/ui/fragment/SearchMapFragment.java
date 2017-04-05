@@ -26,13 +26,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.model.response.WeatherWeek;
+import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class SearchMapFragment extends FragmentLocation implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
 
@@ -44,6 +46,8 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
     private String temp;
     private WeatherWindowAdapter weatherWindowAdapter;
     private ProgressBar progressWindowsInfo;
+    private Observable<WeatherWeek> observableWeatherMap;
+    private Subscription subscriberWeatherMap;
 
     @Nullable
     @Override
@@ -104,6 +108,9 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
     public void onPause() {
         super.onPause();
         mapView.onPause();
+        if (subscriberWeatherMap != null) {
+            subscriberWeatherMap.unsubscribe();
+        }
     }
 
     @Override
@@ -202,27 +209,32 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
         progressWindowsInfo.setVisibility(View.VISIBLE);
         //отправляем запрос
-        Call<WeatherWeek> callWeather = App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
-        callWeather.enqueue(new Callback<WeatherWeek>() {
-            @Override
-            public void onResponse(Call<WeatherWeek> call, Response<WeatherWeek> response) {
-                if (response.isSuccessful()) {
-                    // Тут получили данные, сохраняем их и выводим в InfoWindow
-                    progressWindowsInfo.setVisibility(View.GONE);
-                    nameCity = String.valueOf(response.body().city.name);
-                    temp = String.valueOf(response.body().list.get(0).temp.day);
-                    weatherWindowAdapter.setNameCity(nameCity);
-                    weatherWindowAdapter.setTemp(temp);
-                    currLocationMarker.showInfoWindow(); // Делаем видимой панель над маркером (соответственно она инициализируется)
-                }
-            }
+        observableWeatherMap = App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
+        subscriberWeatherMap = observableWeatherMap.subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<WeatherWeek>() {
+                    @Override
+                    public void onCompleted() {
 
-            @Override
-            public void onFailure(Call<WeatherWeek> call, Throwable t) {
-                progressWindowsInfo.setVisibility(View.GONE);
-                Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
-            }
-        });
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        progressWindowsInfo.setVisibility(View.GONE);
+                        Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onNext(WeatherWeek weatherWeek) {
+                        // Тут получили данные, сохраняем их и выводим в InfoWindow
+                        progressWindowsInfo.setVisibility(View.GONE);
+                        nameCity = String.valueOf(weatherWeek.city.name);
+                        temp = String.valueOf(weatherWeek.list.get(0).temp.day);
+                        weatherWindowAdapter.setNameCity(nameCity);
+                        weatherWindowAdapter.setTemp(temp);
+                        currLocationMarker.showInfoWindow(); // Делаем видимой панель над маркером (соответственно она инициализируется)
+                    }
+                });
     }
 
     public class WeatherWindowAdapter implements GoogleMap.InfoWindowAdapter {

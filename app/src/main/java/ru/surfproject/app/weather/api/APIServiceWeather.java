@@ -5,11 +5,12 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 import ru.surfproject.app.weather.model.response.WeatherWeek;
 import ru.surfproject.app.weather.model.response.city.City;
+import rx.Observable;
 
 public interface APIServiceWeather {
 
     @GET("data/2.5/forecast/daily")
-    Call<WeatherWeek> getWeatherCoord(@Query("lat") String lat,
+    Observable<WeatherWeek> getWeatherCoord(@Query("lat") String lat,
                                       @Query("lon") String lon,
                                       @Query("cnt") String cnt,
                                       @Query("units") String units,
@@ -17,10 +18,10 @@ public interface APIServiceWeather {
                                       @Query("appid") String appid);
 
     @GET("data/2.5/forecast/daily")
-    Call<WeatherWeek> getWeatherCityName(@Query("q") String cityName,
-                                      @Query("cnt") String cnt,
-                                      @Query("units") String units,
-                                      @Query("lang") String lang,
-                                      @Query("appid") String appid);
+    Observable<WeatherWeek> getWeatherCityName(@Query("q") String cityName,
+                                               @Query("cnt") String cnt,
+                                               @Query("units") String units,
+                                               @Query("lang") String lang,
+                                               @Query("appid") String appid);
 
 }

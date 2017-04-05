@@ -32,11 +32,13 @@ import android.widget.Toast;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -44,16 +46,21 @@ import retrofit2.Response;
 import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.SharedPref;
+import ru.surfproject.app.weather.db.dao.WeatherDao;
 import ru.surfproject.app.weather.ui.activity.MainActivity;
 import ru.surfproject.app.weather.util.TimeUtils;
 import ru.surfproject.app.weather.adapter.WeatherAdapter;
 import ru.surfproject.app.weather.R;
-import ru.surfproject.app.weather.db.loader.GetWeatherDBLoader;
-import ru.surfproject.app.weather.db.loader.SetWeatherDBLoader;
 import ru.surfproject.app.weather.model.Weather;
 import ru.surfproject.app.weather.model.response.WeatherWeek;
+import rx.Observable;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class WeatherFragment extends FragmentLocation {
+
 
     enum ErrorCode {
         NO_PERMISSIONS,
@@ -69,7 +76,8 @@ public class WeatherFragment extends FragmentLocation {
     private View viewRoot;
     private String lat;
     private String lon;
-    private Call<WeatherWeek> callWeather;
+    private Observable<WeatherWeek> observableWeather;
+    private Subscription subscriberWeather;
     private int countTest = 0;
     private Toolbar toolbarCollapsing;
     private SwipeRefreshLayout refreshWeather;
@@ -143,7 +151,8 @@ public class WeatherFragment extends FragmentLocation {
             myWeather.add(weather);
         }
         // Запускаем лоудер, который записывает данные в БД
-        getActivity().getSupportLoaderManager().restartLoader(0, args(myWeather), setWeatherDBLoaderCallbacks);
+       // getActivity().getSupportLoaderManager().restartLoader(0, args(myWeather), setWeatherDBLoaderCallbacks1);
+        saveWeatherToBD();
     }
 
     private void saveDateNow(String dateNow) {
@@ -153,7 +162,7 @@ public class WeatherFragment extends FragmentLocation {
     }
 
     private String getDateFromShared() {
-        return SharedPref.getSharedPreferences().getString(Const.DATA_NOW,"");
+        return SharedPref.getSharedPreferences().getString(Const.DATA_NOW, "");
     }
 
     private void getWeatherCoord(String lat, String lon, String cnt, String units, String lang, String appid) {
@@ -163,51 +172,40 @@ public class WeatherFragment extends FragmentLocation {
             Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
         } else {
             //отправляем запрос
-            callWeather = App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, units, lang, appid);
-            callWeather.enqueue(new Callback<WeatherWeek>() {
-                @Override
-                public void onResponse(Call<WeatherWeek> call, Response<WeatherWeek> response) {
-                    progressBar.setVisibility(View.GONE);
-                    if (response.isSuccessful()) {
-                        if (response.body().city.name == null || response.body().list == null) {
+            observableWeather = App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, units, lang, appid);
+            subscriberWeather = observableWeather.subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Subscriber<WeatherWeek>() {
+                        @Override
+                        public void onCompleted() {
+                            progressBar.setVisibility(View.GONE);
+                            placeHolderNetwork.setVisibility(View.GONE);
+                            if (refreshWeather.isRefreshing()) {
+                                refreshWeather.setRefreshing(false);
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
                             errorCode = ErrorCode.OK;
                             if (refreshWeather.isRefreshing()) {
                                 refreshWeather.setRefreshing(false);
                             } else {
-                                errorMessageTextView.setText("Мы получили данные, но они с ошибкой");
-                                btnRepeatCommand.setText("Повторить");
                                 progressBar.setVisibility(View.GONE);
                                 placeHolderNetwork.setVisibility(View.VISIBLE);
+                                errorMessageTextView.setText("Сетевой запрос выполнился с ошибкой");
+                                btnRepeatCommand.setText("Повторить");
                             }
-                            Toast.makeText(getContext(), "Данные прогноза погоды не некорректные!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            toolbarCollapsing.setTitle(response.body().city.name); // Устанавливаем имя города в титл город
-                            setupWeather(response.body().list); // Заполнение myWeather
-                            mainRecyclerAdapter.updateWeatherList(myWeather);
-
+                            Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
                         }
-                    }
-                    progressBar.setVisibility(View.GONE);
-                    placeHolderNetwork.setVisibility(View.GONE);
-                    if (refreshWeather.isRefreshing()) {
-                        refreshWeather.setRefreshing(false);
-                    }
-                }
 
-                @Override
-                public void onFailure(Call<WeatherWeek> call, Throwable t) {
-                    errorCode = ErrorCode.OK;
-                    if (refreshWeather.isRefreshing()) {
-                        refreshWeather.setRefreshing(false);
-                    } else {
-                        progressBar.setVisibility(View.GONE);
-                        placeHolderNetwork.setVisibility(View.VISIBLE);
-                        errorMessageTextView.setText("Сетевой запрос выполнился с ошибкой");
-                        btnRepeatCommand.setText("Повторить");
-                    }
-                    Toast.makeText(getActivity(), "Ошибка загрузки погоды!", Toast.LENGTH_SHORT).show();
-                }
-            });
+                        @Override
+                        public void onNext(WeatherWeek weatherWeek) {
+                            toolbarCollapsing.setTitle(weatherWeek.city.name); // Устанавливаем имя города в титл город
+                            setupWeather(weatherWeek.list); // Заполнение myWeather
+                            mainRecyclerAdapter.updateWeatherList(myWeather);
+                        }
+                    });
         }
     }
 
@@ -222,8 +220,8 @@ public class WeatherFragment extends FragmentLocation {
                     getPermissionLocation();
                     break;
                 case OK:
-                    // Запускаем лоадер, который получает данные из БД
-                    getActivity().getSupportLoaderManager().restartLoader(0, null, getWeatherDBLoaderCallbacks);
+                    // Метод получает погоду
+                    getWeather();
                     break;
                 case NO_LOCATION:
                     // Не включена геолокация
@@ -236,8 +234,9 @@ public class WeatherFragment extends FragmentLocation {
     @Override
     public void onPause() {
         super.onPause();
-        if (callWeather != null) {
-            callWeather.cancel(); // Отменяем запрос, если фрагмент не в фокусе пользователя
+        // Отписываемся от запроса, когда покидаем фрагмент
+        if (subscriberWeather != null) {
+            subscriberWeather.unsubscribe();
         }
     }
 
@@ -318,22 +317,12 @@ public class WeatherFragment extends FragmentLocation {
 
     @Override
     public void onLocationChanged(Location location) {
-        //TODO почему-то постоянно(бесконечно) выполняется этот метод, после того, как мы предоставили доступ к геопозиции устройства приложению,
-        //TODO при последующих запусках такого не происходит.
-        //TODO Пока стоит костыль
-        countTest++;
-
         lastLocation = location;
         //Как только получили координаты, показываем погоду, скрываем прогрессбар
         lat = String.valueOf(location.getLatitude());
         lon = String.valueOf(location.getLongitude());
-
-        // Как только получили координаты пользователя, выполняем сетевой запрос
-        if (countTest == 1) {
-            // Запускаем лоадер
-            getActivity().getSupportLoaderManager().restartLoader(0, null, getWeatherDBLoaderCallbacks);
-        }
-
+        // Как только получили координаты пользователя, выполняем сетевой запрос или получаем данные из БД
+        getWeather();
         //Останавливаем обновление LocationServices
         if (googleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
@@ -342,52 +331,69 @@ public class WeatherFragment extends FragmentLocation {
 
     }
 
-    // Коллбек лоудера setWeatherDBLoaderCallbacks, тут получаем данные погоды
-    private LoaderManager.LoaderCallbacks<List<Weather>> getWeatherDBLoaderCallbacks = new LoaderManager.LoaderCallbacks<List<Weather>>() {
-        @Override
-        public Loader<List<Weather>> onCreateLoader(int id, Bundle args) {
-            return new GetWeatherDBLoader(getActivity());
+    // Получение прогноза погоды, идёт выборка из БД или из сервака
+    private void getWeather() {
+        WeatherDao weatherDao = null;
+        try {
+            weatherDao = App.getHelper().getWeatherDao();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (weatherDao != null) {
+            weatherDao.getAllWeather().subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Subscriber<List<Weather>>() {
+                        @Override
+                        public void onCompleted() {
+
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            Toast.makeText(getActivity(), "Ошибка\n"+ e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onNext(List<Weather> weathers) {
+                            //показываем полученные данные
+                            myWeather.clear();
+                            myWeather = weathers;
+                            String dataNow = TimeUtils.getDatetimeNow();
+                            String dataShared = getDateFromShared();
+                            boolean isNecessaryUpdateWeather = TimeUtils.isNecessaryUpdateWeather(dataNow, dataShared);
+                            if (isNecessaryUpdateWeather) {
+                                // Необходимо обновить данные, так как прошло больше 2-х часов
+                                getWeatherCoord(lat, lon, Const.CNT, Const.UTILS, Const.LANG, Const.WEATHER_API);
+                            } else {
+                                mainRecyclerAdapter.updateWeatherList(weathers);
+                                progressBar.setVisibility(View.GONE);
+                                placeHolderNetwork.setVisibility(View.GONE);
+                            }
+                        }
+                    });
+        }
+    }
+    private void saveWeatherToBD() {
+        // Добавление в БД
+        WeatherDao weatherDao = null;
+        try {
+            weatherDao = App.getHelper().getWeatherDao();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
-        @Override
-        public void onLoadFinished(Loader<List<Weather>> loader, List<Weather> weather) {
-            //показываем полученные данные
-            myWeather.clear();
-            myWeather = weather;
-            String dataNow = TimeUtils.getDatetimeNow();
-            String dataShared = getDateFromShared();
-            boolean isNecessaryUpdateWeather = TimeUtils.isNecessaryUpdateWeather(dataNow, dataShared);
-            if (isNecessaryUpdateWeather) {
-                // Необходимо обновить данные, так как прошло больше 2-х часов
-                getWeatherCoord(lat, lon, Const.CNT, Const.UTILS, Const.LANG, Const.WEATHER_API);
+        try {
+            if (weatherDao != null) {
+                weatherDao.clearTable();
+                for (int i = 0; i < myWeather.size(); i++) {
+                    weatherDao.createOrUpdate(myWeather.get(i)); // Апдейтим или создаём
+                }
             } else {
-                mainRecyclerAdapter.updateWeatherList(weather);
-                progressBar.setVisibility(View.GONE);
-                placeHolderNetwork.setVisibility(View.GONE);
+                Log.d("DATABASE", "weatherDao == null");
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Log.d("DATABASE", "Ошибка:" + e.getMessage());
         }
-
-        @Override
-        public void onLoaderReset(Loader<List<Weather>> loader) {
-            //Loader перезапущен, очищаются все данные, unregister any listeners, etc.
-        }
-    };
-    // Коллбек лоудера setWeatherDBLoaderCallbacks, тут приходит инфа о кол-ве записанных данных
-    private LoaderManager.LoaderCallbacks<Integer> setWeatherDBLoaderCallbacks = new LoaderManager.LoaderCallbacks<Integer>() {
-        @Override
-        public Loader<Integer> onCreateLoader(int id, Bundle args) {
-            return new SetWeatherDBLoader(getActivity(), args);
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Integer> loader, Integer cout) {
-            //показываем полученные данные
-            Log.d("DATABASE", "Кол-во записей добавленых(обновленных) в БД: "+ cout);
-        }
-
-        @Override
-        public void onLoaderReset(Loader<Integer> loader) {
-            //Loader перезапущен, очищаются все данные, unregister any listeners, etc.
-        }
-    };
+    }
 }

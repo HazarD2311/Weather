@@ -209,9 +209,7 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
     private void getWeather(String lat, String lon, String cnt, String units, String appid) {
         progressWindowsInfo.setVisibility(View.VISIBLE);
         //отправляем запрос
-        observableWeatherMap = App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, "metric", "ru", appid);
-        subscriberWeatherMap = observableWeatherMap.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        subscriberWeatherMap = observableWeatherMap(lat, lon, cnt, units, appid)
                 .subscribe(new Subscriber<WeatherWeek>() {
                     @Override
                     public void onCompleted() {
@@ -235,6 +233,12 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
                         currLocationMarker.showInfoWindow(); // Делаем видимой панель над маркером (соответственно она инициализируется)
                     }
                 });
+    }
+
+    private Observable<WeatherWeek> observableWeatherMap(String lat, String lon, String cnt, String units, String appid) {
+        return App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, "metric", "ru", appid)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
     public class WeatherWindowAdapter implements GoogleMap.InfoWindowAdapter {

@@ -58,55 +58,29 @@ public class SearchFragment extends Fragment {
 
 
         searchCity = (EditText) view.findViewById(R.id.edt_search_city);
+        observableTextChange().subscribe(new Subscriber<CharSequence>() {
+            @Override
+            public void onCompleted() {
 
-        Observable<CharSequence> observable = RxTextView.textChanges(searchCity);
-        observable.skip(1)
-                .throttleLast(100, TimeUnit.MILLISECONDS)
-                .debounce(300, TimeUnit.MILLISECONDS)
-                .onBackpressureLatest()
-                .observeOn(AndroidSchedulers.mainThread())
-                .filter(new Func1<CharSequence, Boolean>() {
-                    @Override
-                    public Boolean call(CharSequence charSequence) {
-                        final boolean empty = TextUtils.isEmpty(charSequence);
-                        if (empty) {
-                            listCitys.clear();
-                            listCitiesAdapter.notifyDataSetChanged();
-                        }
-                        return !empty;
-                    }
-                })
-                .subscribe(new Subscriber<CharSequence>() {
-                    @Override
-                    public void onCompleted() {
+            }
 
-                    }
+            @Override
+            public void onError(Throwable e) {
+                e.getMessage();
+            }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.getMessage();
-                    }
-
-                    @Override
-                    public void onNext(CharSequence charSequence) {
-                        progressCity.setVisibility(View.GONE);
-                        getCityByName(charSequence.toString());
-                    }
-                });
+            @Override
+            public void onNext(CharSequence charSequence) {
+                progressCity.setVisibility(View.GONE);
+                getCityByName(charSequence.toString());
+            }
+        });
         return view;
     }
 
-    private void getCityByName(String text) {
+    private void getCityByName(String cityName) {
         progressCity.setVisibility(View.VISIBLE);
-        Observable<City> observable = App.getAPIServiceGoogle().getCity(text, "(cities)", getString(R.string.google_maps_key));
-        observable.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(new Func1<City, Observable<Prediction>>() {
-                    @Override
-                    public Observable<Prediction> call(City city) {
-                        return Observable.from(city.predictions);
-                    }
-                }).subscribe(new Subscriber<Prediction>() {
+        observableGetCity(cityName).subscribe(new Subscriber<Prediction>() {
             @Override
             public void onCompleted() {
                 progressCity.setVisibility(View.GONE);
@@ -133,4 +107,35 @@ public class SearchFragment extends Fragment {
             Toast.makeText(getActivity(), name, Toast.LENGTH_SHORT).show();
         }
     };
+
+    private Observable<CharSequence> observableTextChange() {
+        return RxTextView.textChanges(searchCity).skip(1) // Пропускаем первый вызов
+                .throttleLast(100, TimeUnit.MILLISECONDS)
+                .debounce(300, TimeUnit.MILLISECONDS) // Задержка
+                .onBackpressureLatest()
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter(new Func1<CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(CharSequence charSequence) {
+                        final boolean empty = TextUtils.isEmpty(charSequence);
+                        if (empty) {
+                            listCitys.clear();
+                            listCitiesAdapter.notifyDataSetChanged();
+                        }
+                        return !empty;
+                    }
+                });
+    }
+
+    private Observable<Prediction> observableGetCity(String nameCity) {
+        Observable<City> observable = App.getAPIServiceGoogle().getCity(nameCity, "(cities)", getString(R.string.google_maps_key));
+        return observable.subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Func1<City, Observable<Prediction>>() {
+                    @Override
+                    public Observable<Prediction> call(City city) {
+                        return Observable.from(city.predictions);
+                    }
+                });
+    }
 }

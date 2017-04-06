@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -23,6 +24,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+
+import ru.surfproject.app.weather.Const;
 
 public class FragmentLocation extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -61,7 +64,7 @@ public class FragmentLocation extends Fragment implements GoogleApiClient.Connec
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         // Местоположение выключено, запускаем диалог с просьбой включить
                         try {
-                            statusLocation.startResolutionForResult(getActivity(), 1000);
+                            statusLocation.startResolutionForResult(getActivity(), Const.PERMISSIONS_REQUEST_CODE);
                         } catch (IntentSender.SendIntentException e) {
                             // Игнорируем ошибки
                         }
@@ -74,7 +77,11 @@ public class FragmentLocation extends Fragment implements GoogleApiClient.Connec
             }
         });
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+            try {
+                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+            } catch (Exception e) {
+                Log.d("ERROR", "GoogleApiClient is not connected yet");
+            }
         }
     }
 

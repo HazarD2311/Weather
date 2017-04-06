@@ -10,6 +10,8 @@ import java.util.concurrent.Callable;
 
 import ru.surfproject.app.weather.model.Weather;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class WeatherDao extends BaseDaoImpl<Weather, Integer> {
 
@@ -17,18 +19,29 @@ public class WeatherDao extends BaseDaoImpl<Weather, Integer> {
         super(connectionSource, weatherClass);
     }
 
-    /*  public List<Weather> getAllWeather() throws SQLException {
-        return this.queryForAll();
-    }*/
     public Observable<List<Weather>> getAllWeather() {
         return Observable.fromCallable(new Callable<List<Weather>>() {
             public List<Weather> call() throws Exception {
                 return WeatherDao.this.queryForAll();
             }
+        }).subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public void addWeather(final List<Weather> weathers) throws SQLException {
+        WeatherDao.this.callBatchTasks(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                clearTable();
+                for (Weather weather : weathers) {
+                    WeatherDao.this.create(weather);
+                }
+                return null;
+            }
         });
     }
 
-    public void clearTable() {
+    private void clearTable() {
         try {
             TableUtils.clearTable(connectionSource, Weather.class);
         } catch (SQLException e) {

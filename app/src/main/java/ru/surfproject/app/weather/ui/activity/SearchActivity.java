@@ -11,6 +11,7 @@ import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapter.FragmentsAdapter;
 import ru.surfproject.app.weather.ui.fragment.SearchFragment;
 import ru.surfproject.app.weather.ui.fragment.SearchMapFragment;
+import ru.surfproject.app.weather.util.KeyboardUtils;
 
 
 public class SearchActivity extends AppCompatActivity {
@@ -39,6 +40,29 @@ public class SearchActivity extends AppCompatActivity {
         setupViewPager(viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if (tab.getPosition() == 0) {
+                    // Скрываем клавиатуру, если находимся на фрагменте скартой
+                    KeyboardUtils.showKeyboard(SearchActivity.this);
+                }
+                if (tab.getPosition() == 1) {
+                    // Скрываем клавиатуру, если находимся на фрагменте скартой
+                    KeyboardUtils.hideSoftKeyboard(SearchActivity.this);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -52,6 +76,7 @@ public class SearchActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
+            KeyboardUtils.hideSoftKeyboard(SearchActivity.this);
             finish(); // Завершаем текущее активити
         }
         return super.onOptionsItemSelected(item);

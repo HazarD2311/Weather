@@ -51,6 +51,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class WeatherFragment extends FragmentLocation {
@@ -137,8 +138,6 @@ public class WeatherFragment extends FragmentLocation {
             saveDateNow(TimeUtils.getDatetimeNow()); // Сохраняем данный момент времени в sharedPreference
             myWeather.add(weather);
         }
-        // Сохраняем данные в БД
-        saveWeatherToBD();
     }
 
     private void saveDateNow(String dateNow) {
@@ -185,7 +184,6 @@ public class WeatherFragment extends FragmentLocation {
                 @Override
                 public void onNext(WeatherWeek weatherWeek) {
                     toolbarCollapsing.setTitle(weatherWeek.city.name); // Устанавливаем имя города в титл город
-                    setupWeather(weatherWeek.list); // Заполнение myWeather
                     mainRecyclerAdapter.updateWeatherList(myWeather);
                 }
             });
@@ -371,7 +369,14 @@ public class WeatherFragment extends FragmentLocation {
 
     private Observable<WeatherWeek> observableWeatherWeek(String lat, String lon, String cnt, String units, String lang, String appid) {
         return App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, units, lang, appid)
-                .subscribeOn(Schedulers.newThread())
+                .doOnNext(new Action1<WeatherWeek>() {
+                    @Override
+                    public void call(WeatherWeek weatherWeek) {
+                        setupWeather(weatherWeek.list); // Заполнение myWeather
+                        saveWeatherToBD();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
 }

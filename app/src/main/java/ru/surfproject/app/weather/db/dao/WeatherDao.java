@@ -1,5 +1,7 @@
 package ru.surfproject.app.weather.db.dao;
 
+import android.util.Log;
+
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -22,9 +24,10 @@ public class WeatherDao extends BaseDaoImpl<Weather, Integer> {
     public Observable<List<Weather>> getAllWeather() {
         return Observable.fromCallable(new Callable<List<Weather>>() {
             public List<Weather> call() throws Exception {
+                Log.d("WeatherDao", "Thread getAllWeather: "+ Thread.currentThread().getName());
                 return WeatherDao.this.queryForAll();
             }
-        }).subscribeOn(Schedulers.newThread())
+        }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
@@ -33,6 +36,7 @@ public class WeatherDao extends BaseDaoImpl<Weather, Integer> {
             @Override
             public Void call() throws Exception {
                 clearTable();
+                Log.d("WeatherDao", "Thread addWeather: "+ Thread.currentThread().getName());
                 for (Weather weather : weathers) {
                     WeatherDao.this.create(weather);
                 }
@@ -43,6 +47,7 @@ public class WeatherDao extends BaseDaoImpl<Weather, Integer> {
 
     private void clearTable() {
         try {
+            Log.d("WeatherDao", "Thread clearTable: "+ Thread.currentThread().getName());
             TableUtils.clearTable(connectionSource, Weather.class);
         } catch (SQLException e) {
             e.printStackTrace();

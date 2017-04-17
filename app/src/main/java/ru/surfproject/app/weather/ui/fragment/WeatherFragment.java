@@ -44,6 +44,9 @@ import retrofit2.Response;
 import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.Const;
 import ru.surfproject.app.weather.SharedPref;
+import ru.surfproject.app.weather.model.Pressure;
+import ru.surfproject.app.weather.model.Speed;
+import ru.surfproject.app.weather.model.Temperature;
 import ru.surfproject.app.weather.ui.activity.MainActivity;
 import ru.surfproject.app.weather.util.TimeUtils;
 import ru.surfproject.app.weather.adapter.WeatherAdapter;
@@ -127,8 +130,8 @@ public class WeatherFragment extends FragmentLocation {
             //получаем из имени ресурса идентификатор картинки
             int weatherIcon = getResources().getIdentifier(drawableName, "drawable", getContext().getPackageName());
             SimpleDateFormat dateFormat = new SimpleDateFormat("E, d MMMM", Locale.getDefault());
-            weatherDay = String.valueOf(listWeather.get(i).temp.morn.intValue()) + getString(R.string.signDegree);
-            weatherNight = String.valueOf(listWeather.get(i).temp.night.intValue()) + getString(R.string.signDegree);
+            weatherDay = setupTemperature(listWeather.get(i).temp.morn, SharedPref.getSharedPreferences().getString(Const.TYPE_OF_WEATHER, ""));
+            weatherNight = setupTemperature(listWeather.get(i).temp.night, SharedPref.getSharedPreferences().getString(Const.TYPE_OF_WEATHER, ""));
             Weather weather = new Weather();
             weather.setImage(weatherIcon);
             weather.setDay(dateFormat.format(date));
@@ -136,14 +139,49 @@ public class WeatherFragment extends FragmentLocation {
             weather.setTemperatureDay(weatherDay);
             weather.setTemperatureNight(weatherNight);
             weather.setHumidity(String.valueOf(listWeather.get(i).humidity));
-            weather.setPressure(String.valueOf(listWeather.get(i).pressure));
-            weather.setWindSpeed(String.valueOf(listWeather.get(i).speed));
+            weather.setPressure(setupPressure(listWeather.get(i).pressure, SharedPref.getSharedPreferences().getString(Const.TYPE_OF_PRESSURE, "")));
+            weather.setWindSpeed(setupSpeed(listWeather.get(i).speed, SharedPref.getSharedPreferences().getString(Const.TYPE_OF_SPEED, "")));
             weather.setDirection(String.valueOf(listWeather.get(i).deg));
             saveDateNow(TimeUtils.getDatetimeNow()); // Сохраняем данный момент времени в sharedPreference
             myWeather.add(weather);
         }
         // Запускаем лоудер, который записывает данные в БД
         getActivity().getSupportLoaderManager().restartLoader(0, args(myWeather), setWeatherDBLoaderCallbacks);
+    }
+
+    private String setupTemperature(Double temperatureValue, String typeFromSettings) {
+        Temperature temperature = new Temperature(temperatureValue);
+        switch (typeFromSettings) {
+            case "1":
+                return temperature.getIntCelsius() + getString(R.string.sign_degree);
+            case "0":
+                return temperature.getIntFahrenheit() + getString(R.string.sign_degree);
+        }
+        return "ошибка";
+    }
+
+    private String setupSpeed(Double speedValue, String typeFromSettings) {
+        Speed speed = new Speed(speedValue);
+        switch (typeFromSettings) {
+            case "1":
+                return speed.getMeterSec() + " " + getString(R.string.meter_sec);
+            case "0":
+                return speed.getKmHour() + " " + getString(R.string.km_hour);
+            case "-1":
+                return speed.getMileHour() + " " + getString(R.string.mile_hour);
+        }
+        return "ошибка";
+    }
+
+    private String setupPressure(Double pressureValue, String typeFromSettings) {
+        Pressure pressure = new Pressure(pressureValue);
+        switch (typeFromSettings) {
+            case "1":
+                return String.valueOf(pressure.gethPa());
+            case "0":
+                return String.valueOf(pressure.getMmRtSt());
+        }
+        return "ошибка";
     }
 
     private void saveDateNow(String dateNow) {
@@ -153,7 +191,7 @@ public class WeatherFragment extends FragmentLocation {
     }
 
     private String getDateFromShared() {
-        return SharedPref.getSharedPreferences().getString(Const.DATA_NOW,"");
+        return SharedPref.getSharedPreferences().getString(Const.DATA_NOW, "");
     }
 
     private void getWeatherCoord(String lat, String lon, String cnt, String units, String lang, String appid) {
@@ -377,7 +415,7 @@ public class WeatherFragment extends FragmentLocation {
         @Override
         public void onLoadFinished(Loader<Integer> loader, Integer cout) {
             //показываем полученные данные
-            Log.d("DATABASE", "Кол-во записей добавленых(обновленных) в БД: "+ cout);
+            Log.d("DATABASE", "Кол-во записей добавленых(обновленных) в БД: " + cout);
         }
 
         @Override

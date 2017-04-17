@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Единицы измерения</string>
+    <string name="setting_temperature">Температура</string>
+    <string name="settings_speed">Скорость ветра</string>
+    <string name="settings_pressure">Давление</string>
+
+    <string-array name="settings_temperature">
+        <item>По Цельсию</item>
+        <item>По Фаренгейту</item>
+    </string-array>
+    <string-array name="settings_temperature_values">
+        <item>1</item>
+        <item>0</item>
+    </string-array>
+
+    <string-array name="settings_speed">
+        <item>м/с</item>
+        <item>км/ч</item>
+        <item>миль/ч</item>
+    </string-array>
+    <string-array name="settings_speed_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <string-array name="settings_pressure">
+        <item>гПа</item>
+        <item>мм рт.ст.</item>
+    </string-array>
+    <string-array name="settings_pressure_values">
+        <item>1</item>
+        <item>0</item>
+    </string-array>
+
+
+</resources>

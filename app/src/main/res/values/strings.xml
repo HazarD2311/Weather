@@ -9,24 +9,15 @@
     <string name="title_activity_settings">Настройки</string>
     <string name="title_activity_maps">Map</string>
 
-     <!-- Стринги для активити настройки -->
-    <string name="settingsTitleMain">Основное</string>
-    <string name="settingsMainTemperature">Температура</string>
-    <string name="settingsMainTemperatureType1">По Цельсию</string>
-    <string name="settingsMainTemperatureType2">По Фаренгейту</string>
-    <string name="settingsMainSpeedWind">Скорость ветра</string>
-    <string name="settingsMainSpeedWindType1">м/с</string>
-    <string name="settingsMainSpeedWindType2">км/ч</string>
-    <string name="settingsMainPressure">Давление</string>
-    <string name="settingsMainPressureType1">мм рт. ст</string>
-    <string name="settingsMainPressureType2">гПа</string>
-
     <!-- Знаки для погоды! -->
-    <string name="signDegree">°</string>
-    <string name="signPlus">+</string>
-    
+    <string name="sign_degree">°</string>
+    <string name="sign_plus">+</string>
+    <string name="meter_sec">м/с</string>
+    <string name="km_hour">км/ч</string>
+    <string name="mile_hour">миль/ч</string>
+
     <!-- Всплывающее меню для избранных -->
-    <string name="renameFavourite">Переименовать</string>
-    <string name="deleteFavourite">Удалить</string>
+    <string name="rename_favourite">Переименовать</string>
+    <string name="delete_favourite">Удалить</string>
 
 </resources>

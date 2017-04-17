@@ -4,8 +4,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.RadioGroup;
 
 import ru.surfproject.app.weather.R;
+import ru.surfproject.app.weather.ui.fragment.SettingsFragment;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -21,6 +23,11 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+
+        getFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragment_settings_container, new SettingsFragment())
+                .commit();
     }
 
     // Метод слушает нажатые кнопки в actionBar

@@ -102,5 +102,6 @@ public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHold
     public void updateWeatherList(List<Weather> listWeather) {
         weatherList.clear();
         weatherList.addAll(listWeather);
+        this.notifyDataSetChanged();
     }
 }

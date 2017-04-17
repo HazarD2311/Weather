@@ -27,6 +27,9 @@ public class Const {
     public static final String CNT = "10";
     public static final String UTILS = "metric";
     public static final String LANG = "ru";
+    public static final String TYPE_OF_WEATHER = "pref_temperature";
+    public static final String TYPE_OF_SPEED = "pref_speed";
+    public static final String TYPE_OF_PRESSURE = "pref_pressure";
 
     //RequestCodes
     public static final int REQUEST_CODE_PERMISSION = 1000;

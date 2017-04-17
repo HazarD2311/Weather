@@ -31,7 +31,7 @@ import ru.surfproject.app.weather.model.response.city.City;
 public class SearchFragment extends Fragment {
 
     private EditText searchCity;
-    private List<String> listCitys = new ArrayList<>();
+    private List<String> listCities = new ArrayList<>();
     private RecyclerView recyclerCities;
     private ListCitiesAdapter listCitiesAdapter;
     private ProgressBar progressCity;
@@ -48,7 +48,7 @@ public class SearchFragment extends Fragment {
 
         searchCity = (EditText) view.findViewById(R.id.edt_search_city);
         searchCity.addTextChangedListener(new TextWatcher() {
-            private Timer timer=new Timer();
+            private Timer timer = new Timer();
             private final long DELAY = 500; // Задержка в миллисекундах
 
             @Override
@@ -70,7 +70,7 @@ public class SearchFragment extends Fragment {
                                     public void run() {
                                         getCityByName(s.toString());
                                         if (count == 0) {
-                                            listCitys.clear();
+                                            listCities.clear();
                                             if (listCitiesAdapter != null) {
                                                 listCitiesAdapter.notifyDataSetChanged();
                                             }
@@ -98,21 +98,21 @@ public class SearchFragment extends Fragment {
             @Override
             public void onResponse(Call<City> call, Response<City> response) {
                 if (response.isSuccessful()) {
-                    listCitys.clear();
+                    listCities.clear();
                     for (int i = 0; i < response.body().predictions.size(); i++) {
-                        listCitys.add(response.body().predictions.get(i).description);
+                        listCities.add(response.body().predictions.get(i).description);
                     }
                 } else {
 
                 }
                 progressCity.setVisibility(View.GONE);
-                listCitiesAdapter = new ListCitiesAdapter(cityClick, listCitys);
+                listCitiesAdapter = new ListCitiesAdapter(cityClick, listCities);
                 recyclerCities.setAdapter(listCitiesAdapter);
             }
 
             @Override
             public void onFailure(Call<City> call, Throwable t) {
-                Toast.makeText(getActivity(), ""+t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "" + t.getMessage(), Toast.LENGTH_SHORT).show();
                 progressCity.setVisibility(View.GONE);
             }
         });

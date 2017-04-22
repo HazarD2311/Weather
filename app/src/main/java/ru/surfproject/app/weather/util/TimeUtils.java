@@ -19,21 +19,26 @@ public class TimeUtils {
 
     public static boolean isNecessaryUpdateWeather(String strDataNow, String strDataPref) {
         boolean flag = false;
-        SimpleDateFormat format = new SimpleDateFormat(Const.KEY_DATE_TIME);
-        try {
-            Date date1 = format.parse(strDataNow);
-            Date date2 = format.parse(strDataPref);
-            long diff = date1.getTime() - date2.getTime();
-            Log.d("TEST",strDataNow + "\n"+ strDataPref + "\n" +diff);
-            if (diff > Const.TIME_FOR_UPDATE) {
-                Log.d("TEST", "прошло больше 2-х часов, надо обновлять данные");
-                flag = true;
-            } else {
-                Log.d("TEST", "прошло меньше 2-х часов, НЕ надо обновлять данные");
-                flag = false;
+        if (!strDataPref.equals("")) {
+            SimpleDateFormat format = new SimpleDateFormat(Const.KEY_DATE_TIME);
+            try {
+                Date date1 = format.parse(strDataNow);
+                Date date2 = format.parse(strDataPref);
+                long diff = date1.getTime() - date2.getTime();
+                Log.d("TEST",strDataNow + "\n"+ strDataPref + "\n" +diff);
+                if (diff > Const.TIME_FOR_UPDATE) {
+                    Log.d("TEST", "прошло больше 2-х часов, надо обновлять данные");
+                    flag = true;
+                } else {
+                    Log.d("TEST", "прошло меньше 2-х часов, НЕ надо обновлять данные");
+                    flag = false;
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } else {
+            Log.d("TEST", "первый раз запускаем, надо к серваку обращаться");
+            flag = true;
         }
        return flag;
     }

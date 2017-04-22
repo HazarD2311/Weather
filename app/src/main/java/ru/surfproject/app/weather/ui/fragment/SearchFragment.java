@@ -6,9 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,20 +18,14 @@ import com.jakewharton.rxbinding.widget.RxTextView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapter.ListCitiesAdapter;
 import ru.surfproject.app.weather.model.response.city.City;
 import ru.surfproject.app.weather.model.response.city.Prediction;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
@@ -128,7 +120,7 @@ public class SearchFragment extends Fragment {
     }
 
     private Observable<Prediction> observableGetCity(String nameCity) {
-        Observable<City> observable = App.getAPIServiceGoogle().getCity(nameCity, "(cities)", getString(R.string.google_maps_key));
+        Observable<City> observable = App.getInstanceServiceGoogle().getCity(nameCity, "(cities)", getString(R.string.google_maps_key));
         return observable.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .flatMap(new Func1<City, Observable<Prediction>>() {

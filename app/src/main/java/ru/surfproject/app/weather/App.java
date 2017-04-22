@@ -27,36 +27,34 @@ public class App extends Application {
         return helper;
     }
 
-    public static APIServiceWeather getAPIServiceWeather() {
+    public static APIServiceWeather getInstanceServiceWeather() {
+        if (serviceOpenWeather == null) {
+            if (retrofitOpenWeather == null) {
+                retrofitOpenWeather = new retrofit2.Retrofit.Builder()
+                        .baseUrl(Const.BASE_URL)
+                        .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(interceptorAndTimeOut())
+                        .build();
+            }
+            serviceOpenWeather = retrofitOpenWeather.create(APIServiceWeather.class);
+        }
         return serviceOpenWeather;
     }
 
-    public static APIServiceGoogle getAPIServiceGoogle() {
+    public static APIServiceGoogle getInstanceServiceGoogle() {
+        if (serviceGoogle == null) {
+            if (retrofitGoogleAPI == null) {
+                retrofitGoogleAPI = new retrofit2.Retrofit.Builder()
+                        .baseUrl(Const.BASE_URL_GOOGLE)
+                        .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(interceptorAndTimeOut())
+                        .build();
+            }
+            serviceGoogle = retrofitGoogleAPI.create(APIServiceGoogle.class);
+        }
         return serviceGoogle;
-    }
-
-    private static void initRetrofitOpenWeather() {
-        retrofitOpenWeather = new retrofit2.Retrofit.Builder()
-                .baseUrl(Const.BASE_URL)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(interceptorAndTimeOut())
-                .build();
-        serviceOpenWeather = retrofitOpenWeather.create(APIServiceWeather.class);
-    }
-    private static void initRetrofitGoogleAPI() {
-        retrofitGoogleAPI = new retrofit2.Retrofit.Builder()
-                .baseUrl(Const.BASE_URL_GOOGLE)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(interceptorAndTimeOut())
-                .build();
-        serviceGoogle = retrofitGoogleAPI.create(APIServiceGoogle.class);
-    }
-
-    private static void initRetrofit() {
-        initRetrofitOpenWeather();
-        initRetrofitGoogleAPI();
     }
 
     // Метод возвращает объект OkHttpClient
@@ -75,9 +73,8 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        helper = new DBHelper(getApplicationContext());
-        initRetrofit();
-        SharedPref.initialize(getApplicationContext());
+        helper = new DBHelper(this);
+        SharedPref.initialize(this);
     }
 
     @Override

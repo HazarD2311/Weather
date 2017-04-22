@@ -236,7 +236,7 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
     }
 
     private Observable<WeatherWeek> observableWeatherMap(String lat, String lon, String cnt, String units, String appid) {
-        return App.getAPIServiceWeather().getWeatherCoord(lat, lon, cnt, "metric", "ru", appid)
+        return App.getInstanceServiceWeather().getWeatherCoord(lat, lon, cnt, "metric", "ru", appid)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread());
     }

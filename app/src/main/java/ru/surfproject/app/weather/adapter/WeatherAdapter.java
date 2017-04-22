@@ -20,13 +20,10 @@ import ru.surfproject.app.weather.R;
 public class WeatherAdapter extends RecyclerView.Adapter<WeatherAdapter.ViewHolder> {
 
     private List<Weather> weatherList = new ArrayList<>();
-    private Context context;
     Animation animationFadeIn;
     Animation animationFadeOut;
 
-    public WeatherAdapter(List<Weather> itemsRecyclerAdapterList, Context context) {
-        this.weatherList = itemsRecyclerAdapterList;
-        this.context = context;
+    public WeatherAdapter(Context context) {
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
     }

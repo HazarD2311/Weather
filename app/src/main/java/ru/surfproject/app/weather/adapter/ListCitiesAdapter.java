@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ru.surfproject.app.weather.R;
@@ -14,11 +15,10 @@ import ru.surfproject.app.weather.R;
 public class ListCitiesAdapter extends RecyclerView.Adapter<ListCitiesAdapter.ViewHolder> {
 
     private CityOnItemClickListener cityOnItemClickListener;
-    private List<String> listCities;
+    private List<String> listCities = new ArrayList<>();
 
-    public ListCitiesAdapter(CityOnItemClickListener cityOnItemClickListener, List<String> listCities) {
+    public ListCitiesAdapter(CityOnItemClickListener cityOnItemClickListener) {
         this.cityOnItemClickListener = cityOnItemClickListener;
-        this.listCities = listCities;
     }
 
     @Override
@@ -60,5 +60,15 @@ public class ListCitiesAdapter extends RecyclerView.Adapter<ListCitiesAdapter.Vi
 
     public interface CityOnItemClickListener {
         void onItemClick(View v, String name);
+    }
+
+    public void updateCityList(List<String> listCities) {
+        this.listCities.clear();
+        this.listCities.addAll(listCities);
+        this.notifyDataSetChanged();
+    }
+    public void clearRecycler() {
+        this.listCities.clear();
+        this.notifyDataSetChanged();
     }
 }

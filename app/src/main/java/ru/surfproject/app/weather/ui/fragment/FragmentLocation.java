@@ -35,14 +35,6 @@ public class FragmentLocation extends Fragment implements GoogleApiClient.Connec
     public LocationSettingsRequest.Builder builder;
     public Status statusLocation;
 
-    protected synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(getActivity())
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        googleApiClient.connect();
-    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -98,5 +90,14 @@ public class FragmentLocation extends Fragment implements GoogleApiClient.Connec
     @Override
     public void onLocationChanged(Location location) {
 
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        googleApiClient.connect();
     }
 }

@@ -176,7 +176,41 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
         }
     }
 
-    public boolean checkLocationPermissionFragment() {
+
+    public class WeatherWindowAdapter implements GoogleMap.InfoWindowAdapter {
+        private LayoutInflater inflater = null;
+        private String nameCity;
+        private String temp;
+
+        public WeatherWindowAdapter(LayoutInflater inflater) {
+            this.inflater = inflater;
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return (null);
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            View popup = inflater.inflate(R.layout.marker_info, null);
+            TextView tv = (TextView) popup.findViewById(R.id.tv_name_city);
+            tv.setText(nameCity);
+            tv = (TextView) popup.findViewById(R.id.tv_temp);
+            tv.setText(temp);
+            return (popup);
+        }
+
+        public void setNameCity(String nameCity) {
+            this.nameCity = nameCity;
+        }
+
+        public void setTemp(String temp) {
+            this.temp = temp;
+        }
+    }
+
+    private boolean checkLocationPermissionFragment() {
         if (ContextCompat.checkSelfPermission(getContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -241,36 +275,4 @@ public class SearchMapFragment extends FragmentLocation implements OnMapReadyCal
                 .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public class WeatherWindowAdapter implements GoogleMap.InfoWindowAdapter {
-        private LayoutInflater inflater = null;
-        private String nameCity;
-        private String temp;
-
-        public WeatherWindowAdapter(LayoutInflater inflater) {
-            this.inflater = inflater;
-        }
-
-        @Override
-        public View getInfoWindow(Marker marker) {
-            return (null);
-        }
-
-        @Override
-        public View getInfoContents(Marker marker) {
-            View popup = inflater.inflate(R.layout.marker_info, null);
-            TextView tv = (TextView) popup.findViewById(R.id.tv_name_city);
-            tv.setText(nameCity);
-            tv = (TextView) popup.findViewById(R.id.tv_temp);
-            tv.setText(temp);
-            return (popup);
-        }
-
-        public void setNameCity(String nameCity) {
-            this.nameCity = nameCity;
-        }
-
-        public void setTemp(String temp) {
-            this.temp = temp;
-        }
-    }
 }

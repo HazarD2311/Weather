@@ -101,35 +101,6 @@ public class WeatherFragment extends FragmentLocation implements WeatherView {
         return viewRoot;
     }
 
-    private void initRecyclerView() {
-        recyclerViewWeather = (RecyclerView) viewRoot.findViewById(R.id.recycler_view_main);
-        recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
-        recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
-        mainRecyclerAdapter = new WeatherAdapter(getContext()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
-        recyclerViewWeather.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewWeather
-    }
-
-    private View.OnClickListener clickBtnNetworkError = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            placeHolderNetwork.setVisibility(View.GONE);
-            progressBar.setVisibility(View.VISIBLE);
-            switch (errorCode) {
-                case NO_PERMISSIONS:
-                    // Не предоставлены разрешения приложению
-                    getPermissionLocation();
-                    break;
-                case OK:
-                    // Метод получает погоду
-                    presenter.getWeather(mLat, mLon);
-                    break;
-                case NO_LOCATION:
-                    // Не включена геолокация
-                    buildGoogleApiClient();
-                    break;
-            }
-        }
-    };
 
     @Override
     public void onPause() {
@@ -162,36 +133,6 @@ public class WeatherFragment extends FragmentLocation implements WeatherView {
                 }
             }
             // Тут можно добавить еще пермишены.
-        }
-    }
-
-    private void getPermissionLocation() {
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkLocationPermissionFragment(); // Просим доступ к местоположению устройства.
-            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
-                buildGoogleApiClient();
-            }
-        } else {
-            buildGoogleApiClient();
-
-        }
-    }
-
-    public boolean checkLocationPermissionFragment() {
-        if (ContextCompat.checkSelfPermission(getContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Запрашиваем доступ к ACCESS_FINE_LOCATION
-            if (shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Const.MY_PERMISSIONS_REQUEST_LOCATION);
-            } else {
-                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
-            }
-            return false;
-        } else {
-            return true;
         }
     }
 
@@ -250,7 +191,7 @@ public class WeatherFragment extends FragmentLocation implements WeatherView {
         if (refreshWeather.isRefreshing()) {
             refreshWeather.setRefreshing(false);
         }
-       // toolbarCollapsing.setTitle(weatherWeek.city.name); // Устанавливаем имя города в титл город
+        // toolbarCollapsing.setTitle(weatherWeek.city.name); // Устанавливаем имя города в титл город
         mainRecyclerAdapter.updateWeatherList(weatherList);
     }
 
@@ -265,6 +206,66 @@ public class WeatherFragment extends FragmentLocation implements WeatherView {
             if (refreshWeather.isRefreshing()) {
                 refreshWeather.setRefreshing(false);
             }
+        }
+    }
+
+    private void getPermissionLocation() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkLocationPermissionFragment(); // Просим доступ к местоположению устройства.
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) { // Проверяем наличаем разрешения
+                buildGoogleApiClient();
+            }
+        } else {
+            buildGoogleApiClient();
+
+        }
+    }
+
+    private void initRecyclerView() {
+        recyclerViewWeather = (RecyclerView) viewRoot.findViewById(R.id.recycler_view_main);
+        recyclerViewWeather.setLayoutManager(new LinearLayoutManager(getContext())); // Устанавливаем лайаут для ресайкалВью
+        recyclerViewWeather.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL)); // Добавляем разделитель между элементами
+        mainRecyclerAdapter = new WeatherAdapter(getContext()); // Создаём адаптер, элементы для него получаем в методе elementsForRecyclerView()
+        recyclerViewWeather.setAdapter(mainRecyclerAdapter); // Применяем адаптер для recyclerViewWeather
+    }
+
+    private View.OnClickListener clickBtnNetworkError = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            placeHolderNetwork.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+            switch (errorCode) {
+                case NO_PERMISSIONS:
+                    // Не предоставлены разрешения приложению
+                    getPermissionLocation();
+                    break;
+                case OK:
+                    // Метод получает погоду
+                    presenter.getWeather(mLat, mLon);
+                    break;
+                case NO_LOCATION:
+                    // Не включена геолокация
+                    buildGoogleApiClient();
+                    break;
+            }
+        }
+    };
+
+    private boolean checkLocationPermissionFragment() {
+        if (ContextCompat.checkSelfPermission(getContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Запрашиваем доступ к ACCESS_FINE_LOCATION
+            if (shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Const.MY_PERMISSIONS_REQUEST_LOCATION);
+            } else {
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        Const.MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+            return false;
+        } else {
+            return true;
         }
     }
 }

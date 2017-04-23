@@ -23,21 +23,25 @@ import java.util.concurrent.TimeUnit;
 import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapter.ListCitiesAdapter;
+import ru.surfproject.app.weather.interfaces.search_map.SearchPresenter;
+import ru.surfproject.app.weather.interfaces.search_map.SearchView;
 import ru.surfproject.app.weather.model.response.city.City;
 import ru.surfproject.app.weather.model.response.city.Prediction;
+import ru.surfproject.app.weather.presenter.SearchPresenterImpl;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
-public class SearchFragment extends Fragment {
+public class SearchFragment extends Fragment implements SearchView {
 
     private EditText searchCity;
-    private List<String> listCitys = new ArrayList<>();
     private RecyclerView recyclerCities;
     private ListCitiesAdapter listCitiesAdapter;
     private ProgressBar progressCity;
+    private SearchPresenter presenter;
 
     @Nullable
     @Override
@@ -47,58 +51,43 @@ public class SearchFragment extends Fragment {
         recyclerCities = (RecyclerView) view.findViewById(R.id.recycler_cities);
         recyclerCities.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerCities.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
-
-
+        listCitiesAdapter = new ListCitiesAdapter(cityClick);
+        recyclerCities.setAdapter(listCitiesAdapter);
+        presenter = new SearchPresenterImpl(this, getContext());
         searchCity = (EditText) view.findViewById(R.id.edt_search_city);
-        observableTextChange().subscribe(new Subscriber<CharSequence>() {
+        observableTextChange().subscribe(new Action1<CharSequence>() {
             @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                e.getMessage();
-            }
-
-            @Override
-            public void onNext(CharSequence charSequence) {
-                progressCity.setVisibility(View.GONE);
-                getCityByName(charSequence.toString());
+            public void call(CharSequence charSequence) {
+                presenter.getCityName(charSequence.toString());
             }
         });
         return view;
     }
 
-    private void getCityByName(String cityName) {
-        progressCity.setVisibility(View.VISIBLE);
-        observableGetCity(cityName).subscribe(new Subscriber<Prediction>() {
-            @Override
-            public void onCompleted() {
-                progressCity.setVisibility(View.GONE);
-                listCitiesAdapter = new ListCitiesAdapter(cityClick, listCitys);
-                recyclerCities.setAdapter(listCitiesAdapter);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Toast.makeText(getActivity(), "Ошибка\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                progressCity.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onNext(Prediction prediction) {
-                listCitys.add(prediction.description);
-            }
-        });
+    @Override
+    public void onPause() {
+        super.onPause();
+        presenter.onPause();
     }
 
-    private ListCitiesAdapter.CityOnItemClickListener cityClick = new ListCitiesAdapter.CityOnItemClickListener() {
-        @Override
-        public void onItemClick(View v, String name) {
-            Toast.makeText(getActivity(), name, Toast.LENGTH_SHORT).show();
+    @Override
+    public void showProgress(boolean flag) {
+        if (flag) {
+            progressCity.setVisibility(View.VISIBLE);
+        } else {
+            progressCity.setVisibility(View.GONE);
         }
-    };
+    }
+
+    @Override
+    public void showResult(List<String> listCitys) {
+        listCitiesAdapter.updateCityList(listCitys);
+    }
+
+    @Override
+    public void showError(String error) {
+        Toast.makeText(getActivity(), "Ошибка\n" + error, Toast.LENGTH_SHORT).show();
+    }
 
     private Observable<CharSequence> observableTextChange() {
         return RxTextView.textChanges(searchCity).skip(1) // Пропускаем первый вызов
@@ -110,24 +99,15 @@ public class SearchFragment extends Fragment {
                     @Override
                     public Boolean call(CharSequence charSequence) {
                         final boolean empty = TextUtils.isEmpty(charSequence);
-                        if (empty) {
-                            listCitys.clear();
-                            listCitiesAdapter.notifyDataSetChanged();
-                        }
                         return !empty;
                     }
                 });
     }
 
-    private Observable<Prediction> observableGetCity(String nameCity) {
-        Observable<City> observable = App.getInstanceServiceGoogle().getCity(nameCity, "(cities)", getString(R.string.google_maps_key));
-        return observable.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(new Func1<City, Observable<Prediction>>() {
-                    @Override
-                    public Observable<Prediction> call(City city) {
-                        return Observable.from(city.predictions);
-                    }
-                });
-    }
+    private ListCitiesAdapter.CityOnItemClickListener cityClick = new ListCitiesAdapter.CityOnItemClickListener() {
+        @Override
+        public void onItemClick(View v, String name) {
+            Toast.makeText(getActivity(), name, Toast.LENGTH_SHORT).show();
+        }
+    };
 }

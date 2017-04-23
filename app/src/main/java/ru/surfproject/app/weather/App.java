@@ -57,19 +57,6 @@ public class App extends Application {
         return serviceGoogle;
     }
 
-    // Метод возвращает объект OkHttpClient
-    // В методе задаём логгирование и Timeout сетевого запросов
-    private static OkHttpClient interceptorAndTimeOut() {
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        return new OkHttpClient().newBuilder()
-                .connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .addInterceptor(interceptor)
-                .build();
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -81,5 +68,18 @@ public class App extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         MultiDex.install(this);
+    }
+
+    // Метод возвращает объект OkHttpClient
+    // В методе задаём логгирование и Timeout сетевого запросов
+    private static OkHttpClient interceptorAndTimeOut() {
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        return new OkHttpClient().newBuilder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(interceptor)
+                .build();
     }
 }

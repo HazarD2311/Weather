@@ -5,10 +5,9 @@
     android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="?attr/actionBarSize"
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="ru.surfproject.app.weather.MainActivity"
+    tools:context="ru.surfproject.app.weather.ui.activity.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
     <LinearLayout

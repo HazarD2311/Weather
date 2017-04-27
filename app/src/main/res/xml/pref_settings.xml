@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/settings_title">
+
+        <ListPreference
+            android:defaultValue="1"
+            android:dialogTitle="Выберите единицу измерения"
+            android:entries="@array/settings_temperature"
+            android:entryValues="@array/settings_temperature_values"
+            android:key="pref_temperature"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/setting_temperature" />
+
+        <ListPreference
+            android:defaultValue="1"
+            android:dialogTitle="Выберите единицу измерения"
+            android:entries="@array/settings_speed"
+            android:entryValues="@array/settings_speed_values"
+            android:key="pref_speed"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/settings_speed" />
+
+        <ListPreference
+            android:defaultValue="1"
+            android:dialogTitle="Выберите единицу измерения"
+            android:entries="@array/settings_pressure"
+            android:entryValues="@array/settings_pressure_values"
+            android:key="pref_pressure"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/settings_pressure" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

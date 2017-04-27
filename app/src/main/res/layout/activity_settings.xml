@@ -6,135 +6,14 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context="ru.surfproject.app.weather.SettingsActivity">
+    tools:context="ru.surfproject.app.weather.ui.activity.SettingsActivity">
 
     <include layout="@layout/toolbar_layout" />
 
     <LinearLayout
+        android:id="@+id/fragment_settings_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="@string/settingsTitleMain"
-            android:textColor="@android:color/black"
-            android:textSize="20sp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorViewLine" />
-
-        <RadioGroup
-            android:id="@+id/settings_radio_group_temperature"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:paddingLeft="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsMainTemperature"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-
-            <RadioButton
-                android:id="@+id/settings_temperature_radio_с"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/settingsMainTemperatureType1"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
-
-            <RadioButton
-                android:id="@+id/settings_temperature_radio_f"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsMainTemperatureType2"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
-        </RadioGroup>
-
-        <RadioGroup
-            android:id="@+id/settings_radio_group_speed"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsMainSpeedWind"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-
-            <RadioButton
-                android:id="@+id/settings_speed_wind_radio_ms"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/settingsMainSpeedWindType1"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
-
-            <RadioButton
-                android:id="@+id/settings_speed_wind_radio_km_hour"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsMainSpeedWindType2"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
-        </RadioGroup>
-
-        <RadioGroup
-            android:id="@+id/settings_radio_group_pressure"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:paddingLeft="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsMainPressure"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-
-            <RadioButton
-                android:id="@+id/settings_pressure_mm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="@string/settingsMainPressureType1"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
-
-            <RadioButton
-                android:id="@+id/settings_pressure_gpa"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settingsMainPressureType2"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
-        </RadioGroup>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorViewLine" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="Кэш"
-            android:textColor="@android:color/black"
-            android:textSize="20sp" />
-    </LinearLayout>
+        android:orientation="horizontal" />
 </android.support.design.widget.CoordinatorLayout>

@@ -4,11 +4,11 @@
     <group android:id="@+id/favourite_menu_group">
         <item
             android:id="@+id/favourite_rename"
-            android:title="@string/renameFavourite"
+            android:title="@string/rename_favourite"
             android:visible="true" />
         <item
             android:id="@+id/favourite_delete"
-            android:title="@string/deleteFavourite"
+            android:title="@string/delete_favourite"
             android:visible="true" />
     </group>
 

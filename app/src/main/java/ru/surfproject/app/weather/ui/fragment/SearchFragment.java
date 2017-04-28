@@ -1,5 +1,6 @@
 package ru.surfproject.app.weather.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -27,6 +28,7 @@ import ru.surfproject.app.weather.App;
 import ru.surfproject.app.weather.R;
 import ru.surfproject.app.weather.adapter.ListCitiesAdapter;
 import ru.surfproject.app.weather.model.response.city.City;
+import ru.surfproject.app.weather.ui.activity.MainActivity;
 
 public class SearchFragment extends Fragment {
 
@@ -121,7 +123,11 @@ public class SearchFragment extends Fragment {
     private ListCitiesAdapter.CityOnItemClickListener cityClick = new ListCitiesAdapter.CityOnItemClickListener() {
         @Override
         public void onItemClick(View v, String name) {
-            Toast.makeText(getActivity(), name, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), MainActivity.class);
+            intent.putExtra("CITY_NAME", name);
+            intent.putExtra("FROM_FRAGMENT", "Search");
+            startActivity(intent);
+            //Toast.makeText(getActivity(), name, Toast.LENGTH_SHORT).show();
         }
     };
 }

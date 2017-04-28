@@ -35,6 +35,7 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
     @Override
     public void onBindViewHolder(final FavouritesAdapter.ViewHolder holder, final int position) {
         final Favourite favouriteItemsRecyclerAdapter = favouritesList.get(position);
+        holder.textViewCity.setText(favouriteItemsRecyclerAdapter.getCity());
         if (onItemClickListener != null) {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -53,7 +54,6 @@ public class FavouritesAdapter extends RecyclerView.Adapter<FavouritesAdapter.Vi
             });
         }
 
-        holder.textViewCity.setText(favouriteItemsRecyclerAdapter.getCity());
     }
 
     @Override

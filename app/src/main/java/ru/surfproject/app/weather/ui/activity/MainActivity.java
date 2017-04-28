@@ -38,7 +38,19 @@ public class MainActivity extends AppCompatActivity
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         loadingMapView(); // Метод прогружает MapView, чтобы не было задержки, когда пользователь перейдет на фрагмент с картой
-        openFragment(Const.WEATHER_FRAGMENT, R.id.action_myweather, null); // При первом запуске, открываем этот фрагмент
+
+
+        if (getIntent().getStringExtra("FROM_FRAGMENT") != null) {
+            Bundle bundle = new Bundle();
+            String cityName = getIntent().getStringExtra("CITY_NAME");
+            String fromFragment = getIntent().getStringExtra("FROM_FRAGMENT");
+            bundle.putString("CITY_NAME", cityName);
+            bundle.putString("FROM_FRAGMENT", fromFragment);
+            openFragment(Const.WEATHER_FRAGMENT, R.id.action_myweather, bundle);
+        }
+        else {
+            openFragment(Const.WEATHER_FRAGMENT, R.id.action_myweather, null); // При первом запуске, открываем этот фрагмент
+        }
     }
 
     @Override
